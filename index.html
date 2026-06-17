@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance Pro - Metallic Edition</title>
+    <title>Finance Pro - Metallic Dark</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -30,9 +30,9 @@
             transition: all 0.3s ease;
         }
 
-        .status-pago { border-left: 8px solid #10b981 !important; }
-        .status-naopago { border-left: 8px solid #facc15 !important; background: rgba(250, 204, 21, 0.05) !important; }
-        .status-saida { border-left: 8px solid #ef4444 !important; }
+        .status-pago { border-left: 6px solid #10b981 !important; }
+        .status-naopago { border-left: 6px solid #facc15 !important; background: rgba(250, 204, 21, 0.05) !important; }
+        .status-saida { border-left: 6px solid #ef4444 !important; }
 
         .table-container { max-height: 72vh; overflow-y: auto; }
         ::-webkit-scrollbar { width: 6px; }
@@ -80,10 +80,10 @@
                         <input type="text" id="RAT" placeholder="RAT / OS" class="w-full p-2.5 rounded-xl text-xs">
                         <textarea id="DESCRICAO" placeholder="Descrição..." class="w-full p-2.5 rounded-xl text-xs h-20"></textarea>
                         <div class="grid grid-cols-2 gap-2 text-[10px]">
-                            <input type="number" step="0.01" id="VALOR" placeholder="Valor" class="p-2 rounded-xl">
-                            <input type="number" step="0.01" id="EXTRA" placeholder="Extra" class="p-2 rounded-xl">
-                            <input type="number" step="0.01" id="ALIM" placeholder="Alim" class="p-2 rounded-xl">
-                            <input type="number" step="0.01" id="TRANSP" placeholder="Transp" class="p-2 rounded-xl">
+                            <input type="number" step="0.01" id="VALOR" placeholder="Valor">
+                            <input type="number" step="0.01" id="EXTRA" placeholder="Extra">
+                            <input type="number" step="0.01" id="ALIM" placeholder="Alim">
+                            <input type="number" step="0.01" id="TRANSP" placeholder="Transp">
                         </div>
                         <button type="submit" id="btnSalvar" class="w-full btn-roxo text-white py-3 rounded-xl font-black text-xs uppercase">Salvar</button>
                     </form>
@@ -94,7 +94,7 @@
                 <div class="table-container">
                     <table class="w-full text-left text-xs relative">
                         <thead class="bg-slate-800 text-purple-300 font-black uppercase sticky top-0 z-10 shadow-lg">
-                            <tr><th class="p-4">Data / Hora</th><th class="p-4">Empresa / RAT</th><th class="p-4">Unidade</th><th class="p-4 text-right">Total</th></tr>
+                            <tr><th class="p-4">Data / Hora</th><th class="p-4">Empresa / RAT</th><th class="p-4">Unidade</th><th class="p-4 text-right font-black">Total</th></tr>
                         </thead>
                         <tbody id="listaLancamentos" class="divide-y divide-purple-500/10 text-slate-300"></tbody>
                     </table>
@@ -103,12 +103,8 @@
         </section>
 
         <!-- GUIA 2: FECHAMENTO -->
-        <section id="tab-fechamento" class="tab-content hidden space-y-12">
-            <div class="flex justify-between items-center border-b border-purple-500/30 pb-4">
-                <h2 class="text-xl font-black text-purple-400 uppercase italic">Pendências de Pagamento</h2>
-                <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Foco em Não Pagos</span>
-            </div>
-            <div id="containerFechamento" class="space-y-16"></div>
+        <section id="tab-fechamento" class="tab-content hidden space-y-16">
+            <!-- Os meses serão gerados aqui via JS -->
         </section>
 
         <!-- GUIA 3: DASHBOARD -->
@@ -153,7 +149,7 @@
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
             document.getElementById('tab-' + tabId).classList.remove('hidden');
-            if(tabId === 'fechamento') carregarFechamentoInteligente();
+            if(tabId === 'fechamento') carregarFechamentoFinal();
             if(tabId === 'dashboard') renderCharts();
             if(tabId === 'lancamentos') carregarLancamentos();
         }
@@ -166,27 +162,31 @@
             return parseFloat(str) || 0;
         }
 
-        // --- TRADUTOR DE DATA (YYYY/MM/DD <-> DD/MM/YYYY) ---
-        function obterMesAno(item) {
+        // --- TRADUTOR DE DATA INTELIGENTE (Hífen e Barra) ---
+        function parseDateIntelligent(item) {
             let m = parseInt(item["Mês"]);
             let a = parseInt(item.ANO);
             
-            if (isNaN(m) || isNaN(a)) {
-                const parts = (item.DIA || "").split('/');
-                if (parts[0].length === 4) { // Padrão antigo: YYYY/MM/DD
+            // Se as colunas Mês/Ano falharem, tenta ler a string do DIA
+            if (isNaN(m) || isNaN(a) || m === 0) {
+                const diaStr = (item.DIA || "").toString();
+                const separator = diaStr.includes('-') ? '-' : '/';
+                const parts = diaStr.split(separator);
+
+                if (parts[0].length === 4) { // Padrão Americano: YYYY-MM-DD
                     a = parseInt(parts[0]);
                     m = parseInt(parts[1]);
-                } else { // Padrão novo: DD/MM/YYYY
+                } else { // Padrão Brasileiro: DD/MM/YYYY
                     a = parseInt(parts[2]);
                     m = parseInt(parts[1]);
                 }
             }
-            return { m, a };
+            return { m: m || 1, a: a || 2024 };
         }
 
         async function carregarLancamentos() {
             const lista = document.getElementById('listaLancamentos');
-            lista.innerHTML = '<tr><td colspan="4" class="p-10 text-center font-black animate-pulse uppercase text-purple-500">Acessando Histórico...</td></tr>';
+            lista.innerHTML = '<tr><td colspan="4" class="p-10 text-center font-black animate-pulse uppercase text-purple-500">Sincronizando...</td></tr>';
             const { data, error } = await supabaseClient.from('atendimentos').select('*').order('id', { ascending: false });
             if(error) return;
             dadosCompletos = data;
@@ -203,65 +203,89 @@
             });
         }
 
-        async function carregarFechamentoInteligente() {
-            const container = document.getElementById('containerFechamento');
-            container.innerHTML = '<div class="p-20 text-center font-black uppercase text-purple-500 animate-pulse">Organizando Pendências...</div>';
+        async function carregarFechamentoFinal() {
+            const container = document.getElementById('tab-fechamento');
+            container.innerHTML = '<div class="p-20 text-center font-black uppercase text-purple-500 animate-pulse">Cruzando Dados do Histórico...</div>';
             
             const { data: lancamentos } = await supabaseClient.from('atendimentos').select('*').eq('TIPO', 'Entrada');
             const { data: configs } = await supabaseClient.from('empresas_config').select('*');
 
+            const mesesNomes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
             const grupos = {};
-            const mesNome = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
             lancamentos.forEach(l => {
-                const dateData = obterMesAno(l);
-                const chave = `${dateData.a} - ${mesNome[dateData.m - 1]}`;
-                
-                if(!grupos[chave]) grupos[chave] = { pendentes: {}, totalPago: 0 };
-                
+                const dt = parseDateIntelligent(l);
+                const chave = `${dt.a} - ${mesesNomes[dt.m - 1]}`;
+                if(!grupos[chave]) grupos[chave] = { pendentes: {}, pagos: [] };
+
                 if(l.PAGAMENTO !== 'PAGO') {
                     const emp = l.EMPRESA || 'Outros';
-                    if(!grupos[chave].pendentes[emp]) grupos[chave].pendentes[emp] = { total: 0, qtd: 0 };
+                    if(!grupos[chave].pendentes[emp]) grupos[chave].pendentes[emp] = { total: 0, chamados: [] };
                     grupos[chave].pendentes[emp].total += fixVal(l.TOTAL);
-                    grupos[chave].pendentes[emp].qtd++;
+                    grupos[chave].pendentes[emp].chamados.push(l);
                 } else {
-                    grupos[chave].totalPago += fixVal(l.TOTAL);
+                    grupos[chave].pagos.push(l);
                 }
             });
 
-            container.innerHTML = '';
-            Object.keys(grupos).sort((a,b) => b.localeCompare(a)).forEach(mes => {
-                const g = grupos[mes];
-                let htmlMes = `<div class="space-y-6">
-                    <div class="flex justify-between items-end border-l-4 border-purple-600 pl-4">
-                        <h3 class="text-sm font-black text-slate-400 uppercase tracking-tighter">${mes}</h3>
-                        <span class="text-[9px] font-black text-emerald-500 uppercase italic">Já Recebido: R$ ${g.totalPago.toFixed(2)}</span>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">`;
+            container.innerHTML = '<h2 class="text-xl font-black text-purple-400 uppercase italic border-b border-purple-500/30 pb-4">Central de Fechamentos por Empresa</h2>';
+            
+            // Ordena os meses decrescente
+            Object.keys(grupos).sort((a,b) => b.localeCompare(a)).forEach(mesKey => {
+                const g = grupos[mesKey];
+                let htmlMes = `<div class="space-y-8 mt-12">
+                    <div class="flex items-center space-x-4"><h3 class="text-sm font-black text-slate-500 uppercase border-l-4 border-purple-600 pl-3">${mesKey}</h3><div class="flex-1 h-[1px] bg-white/5"></div></div>`;
                 
-                const empresasPendentes = Object.keys(g.pendentes);
-                
-                if(empresasPendentes.length === 0) {
-                    htmlMes += `<div class="col-span-full py-4 text-[10px] text-slate-600 italic uppercase">Tudo em dia para este mês! 💎</div>`;
+                // --- SEÇÃO PENDENTES (CARDS) ---
+                htmlMes += `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">`;
+                const empPendentes = Object.keys(g.pendentes);
+                if(empPendentes.length === 0) {
+                    htmlMes += `<div class="col-span-full py-4 text-[9px] text-slate-600 uppercase italic">Tudo recebido para este mês. 🚀</div>`;
                 } else {
-                    empresasPendentes.forEach(emp => {
-                        const p = g.pendentes[emp];
-                        const config = configs?.find(x => x.nome_empresa === emp);
+                    empPendentes.forEach(emp => {
+                        const info = g.pendentes[emp];
+                        const conf = configs?.find(x => x.nome_empresa === emp);
                         htmlMes += `
-                            <div class="card-metalico p-5 status-naopago shadow-xl">
-                                <h4 class="font-black text-white text-[10px] uppercase mb-3 border-b border-white/10 pb-2">${emp}</h4>
-                                <div class="flex justify-between items-end mb-4">
-                                    <span class="text-[8px] font-black text-amber-500 uppercase tracking-widest italic">${p.qtd} Chamados</span>
-                                    <span class="text-lg font-black text-purple-400 italic">R$ ${p.total.toFixed(2)}</span>
+                            <div class="card-metalico p-6 status-naopago shadow-2xl">
+                                <h4 class="font-black text-white text-[11px] uppercase mb-4 border-b border-white/10 pb-2">${emp}</h4>
+                                <div class="space-y-3 mb-6">
+                                    ${info.chamados.map(item => `
+                                        <div class="flex justify-between items-start text-[10px] border-b border-white/5 pb-1 last:border-0">
+                                            <div><b class="text-purple-300 font-black tracking-tighter">${item.DIA}</b> <span class="text-slate-500 ml-1">(${item.Local || '-'})</span></div>
+                                            <div class="font-black text-white italic">R$ ${item.TOTAL}</div>
+                                        </div>
+                                    `).join('')}
                                 </div>
-                                <div class="text-[8px] text-slate-500 bg-black/40 p-2 rounded-lg space-y-1">
-                                    <p class="flex justify-between"><span>📧</span> <b>${config?.email_fechamento || '---'}</b></p>
-                                    <p class="flex justify-between"><span>⏳</span> <b>${config?.prazo_envio || '---'}</b></p>
+                                <div class="flex justify-between items-center mb-6">
+                                    <span class="text-[9px] font-black text-amber-500 uppercase">A Receber:</span>
+                                    <span class="text-2xl font-black text-purple-400 italic">R$ ${info.total.toFixed(2)}</span>
+                                </div>
+                                <div class="text-[8px] text-slate-500 bg-black/40 p-3 rounded-xl space-y-1 border border-white/5 font-bold">
+                                    <p class="flex justify-between uppercase"><span>📧 Email:</span> <span>${conf?.email_fechamento || 'N/A'}</span></p>
+                                    <p class="flex justify-between uppercase"><span>⏳ Prazo:</span> <span>${conf?.prazo_envio || '---'}</span></p>
                                 </div>
                             </div>`;
                     });
                 }
-                htmlMes += `</div></div>`;
+                htmlMes += `</div>`;
+
+                // --- SEÇÃO PAGOS (LISTA TÉCNICA) ---
+                if(g.pagos.length > 0) {
+                    htmlMes += `
+                    <div class="mt-8 bg-black/20 rounded-2xl p-6 border border-emerald-500/20">
+                        <h5 class="text-[10px] font-black text-emerald-500 uppercase mb-4 tracking-[0.2em] italic">✔ Histórico de Recebimentos (${mesKey})</h5>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-3">
+                            ${g.pagos.map(p => `
+                                <div class="flex justify-between items-center border-b border-white/5 pb-2">
+                                    <div class="text-[9px] font-bold text-slate-500"><b class="text-slate-300 uppercase font-black">${p.EMPRESA}</b><br>${p.DIA} - ${p.Local}</div>
+                                    <div class="text-xs font-black text-emerald-400 italic">R$ ${p.TOTAL}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>`;
+                }
+                
+                htmlMes += `</div>`;
                 container.innerHTML += htmlMes;
             });
         }
@@ -291,8 +315,8 @@
                     <div class="bg-slate-800 p-2 rounded-lg text-slate-400">ALIM<br><span class="text-white">${item.ALIM || 0}</span></div>
                     <div class="bg-slate-800 p-2 rounded-lg text-slate-400">TRANSP<br><span class="text-white">${item.TRANSP || 0}</span></div>
                 </div>
-                <div class="btn-roxo p-5 rounded-2xl flex justify-between items-center text-white">
-                    <span class="text-[9px] font-black uppercase opacity-60 italic">Total do chamado</span>
+                <div class="btn-roxo p-5 rounded-2xl flex justify-between items-center text-white shadow-xl">
+                    <span class="text-[9px] font-black uppercase opacity-60 italic tracking-widest">Total consolidado</span>
                     <span class="text-2xl font-black italic tracking-tighter">R$ ${item.TOTAL || '0.00'}</span>
                 </div>`;
             modal.style.display = "flex";
@@ -304,31 +328,27 @@
             e.preventDefault();
             const btn = document.getElementById('btnSalvar');
             btn.disabled = true; btn.innerText = "GRAVANDO...";
-            const dataInput = document.getElementById('DIA').value; 
-            const v = fixVal(document.getElementById('VALOR').value);
-            const ex = fixVal(document.getElementById('EXTRA').value);
-            const al = fixVal(document.getElementById('ALIM').value);
-            const tr = fixVal(document.getElementById('TRANSP').value);
+            const dataIn = document.getElementById('DIA').value; 
+            const parts = dataIn.split('-');
             
-            const parts = dataInput.split('-');
-            const dataFormatada = `${parts[2]}/${parts[1]}/${parts[0]}`;
-
             const payload = {
                 TIPO: tipoAtual,
-                DIA: dataFormatada,
+                DIA: `${parts[2]}/${parts[1]}/${parts[0]}`,
                 HORA: document.getElementById('HORA').value,
                 EMPRESA: document.getElementById('EMPRESA').value,
                 "INTERMÉDIO": document.getElementById('INTERMEDIO').value,
                 Local: document.getElementById('Local').value,
                 RAT: document.getElementById('RAT').value,
                 "DESCRIÇÃO": document.getElementById('DESCRICAO').value,
-                VALOR: v.toFixed(2), EXTRA: ex.toFixed(2), ALIM: al.toFixed(2), TRANSP: tr.toFixed(2),
-                TOTAL: (v + ex + al + tr).toFixed(2),
+                VALOR: parseFloat(document.getElementById('VALOR').value || 0).toFixed(2),
+                EXTRA: parseFloat(document.getElementById('EXTRA').value || 0).toFixed(2),
+                ALIM: parseFloat(document.getElementById('ALIM').value || 0).toFixed(2),
+                TRANSP: parseFloat(document.getElementById('TRANSP').value || 0).toFixed(2),
+                TOTAL: (fixVal(document.getElementById('VALOR').value) + fixVal(document.getElementById('EXTRA').value) + fixVal(document.getElementById('ALIM').value) + fixVal(document.getElementById('TRANSP').value)).toFixed(2),
                 PAGAMENTO: tipoAtual === 'Saída' ? 'SAÍDA' : 'NÃO PAGO',
                 "Mês": parseInt(parts[1]),
                 "ANO": parseInt(parts[0])
             };
-
             await supabaseClient.from('atendimentos').insert([payload]);
             location.reload();
         });
@@ -341,8 +361,8 @@
             const saidas = new Array(12).fill(0);
             const empresasMap = {};
             data.forEach(d => {
-                const dateData = obterMesAno(d);
-                const m = dateData.m - 1;
+                const dt = parseDateIntelligent(d);
+                const m = dt.m - 1;
                 const val = fixVal(d.TOTAL);
                 if (m >= 0 && m < 12) {
                     if(d.TIPO === 'Entrada') {
