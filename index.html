@@ -21,6 +21,21 @@
             color: #f1f5f9;
             min-height: 100vh;
             overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Marca d'água no fundo */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("1781706422626.png");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 40%;
+            opacity: 0.05; /* Transparência alta para textura */
+            z-index: -2;
+            pointer-events: none;
         }
 
         .blob {
@@ -47,11 +62,18 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* Estilos de Borda da Tabela (Lançamentos) */
         .status-pago { border-left: 6px solid #10b981; }
-        .status-naopago { border-left: 6px solid #ef4444; border: 2px solid rgba(239, 68, 68, 0.5); } /* Moldura Vermelha */
+        .status-naopago-tab { border-left: 6px solid #f97316; } /* Laranja na tabela */
         .status-saida { border-left: 6px solid #ef4444; }
 
-        .table-container { max-height: 65vh; overflow-y: auto; }
+        /* Estilo do Card de Fechamento (Pendentes) */
+        .card-pendente-moldura { 
+            border: 2px solid #ef4444 !important; /* Moldura vermelha total */
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .table-container { max-height: 60vh; overflow-y: auto; }
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.5); border-radius: 10px; }
 
@@ -105,19 +127,28 @@
                             <input type="number" step="0.01" id="ALIM" placeholder="Alim">
                             <input type="number" step="0.01" id="TRANSP" placeholder="Transp">
                         </div>
-                        <button type="submit" id="btnSalvar" class="w-full btn-glass-purple text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest">GRAVAR DADOS</button>
+                        <button type="submit" id="btnSalvar" class="w-full btn-glass-purple text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-[9px]">GRAVAR DADOS</button>
                     </form>
                 </div>
             </div>
 
-            <div class="lg:col-span-3 h-fit glass rounded-3xl overflow-hidden border border-white/10">
-                <div class="table-container">
-                    <table class="w-full text-left text-xs relative">
-                        <thead class="bg-black/40 text-purple-400 font-bold uppercase sticky top-0 z-10 backdrop-blur-md">
-                            <tr><th class="p-5">Data / Hora</th><th class="p-5">Empresa / RAT</th><th class="p-5 text-right font-black">Total</th></tr>
-                        </thead>
-                        <tbody id="listaLancamentos" class="divide-y divide-white/5"></tbody>
-                    </table>
+            <div class="lg:col-span-3 h-fit flex flex-col gap-4">
+                <!-- BARRA DE PESQUISA -->
+                <div class="glass p-4 rounded-2xl flex items-center gap-4">
+                    <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input type="text" id="inputBusca" onkeyup="filtrarLancamentos()" placeholder="Pesquisar por data, empresa, RAT, local ou valor..." class="w-full bg-transparent !border-none outline-none text-sm placeholder-slate-500">
+                </div>
+
+                <!-- TABELA -->
+                <div class="glass rounded-3xl overflow-hidden border border-white/10">
+                    <div class="table-container">
+                        <table class="w-full text-left text-xs relative">
+                            <thead class="bg-black/40 text-purple-400 font-bold uppercase sticky top-0 z-10 backdrop-blur-md">
+                                <tr><th class="p-5">Data / Hora</th><th class="p-5">Empresa / RAT</th><th class="p-5 text-right font-black">Total</th></tr>
+                            </thead>
+                            <tbody id="listaLancamentos" class="divide-y divide-white/5"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </section>
@@ -198,15 +229,32 @@
 
         async function carregarLancamentos() {
             const lista = document.getElementById('listaLancamentos');
-            lista.innerHTML = '<tr><td colspan="3" class="p-10 text-center font-black animate-pulse text-purple-500 uppercase tracking-widest">Conectando...</td></tr>';
+            lista.innerHTML = '<tr><td colspan="3" class="p-10 text-center font-black animate-pulse text-purple-500 uppercase tracking-widest">Sincronizando...</td></tr>';
             const { data, error } = await supabaseClient.from('atendimentos').select('*').order('id', { ascending: false });
             if(error) return;
             dadosCompletos = data;
+            renderizarTabela(dadosCompletos);
+        }
+
+        function filtrarLancamentos() {
+            const termo = document.getElementById('inputBusca').value.toLowerCase();
+            const filtrados = dadosCompletos.filter(d => 
+                (d.DIA || "").toLowerCase().includes(termo) ||
+                (d.EMPRESA || "").toLowerCase().includes(termo) ||
+                (d.RAT || "").toLowerCase().includes(termo) ||
+                (d.Local || "").toLowerCase().includes(termo) ||
+                (d.TOTAL || "").toString().toLowerCase().includes(termo)
+            );
+            renderizarTabela(filtrados);
+        }
+
+        function renderizarTabela(dados) {
+            const lista = document.getElementById('listaLancamentos');
             lista.innerHTML = '';
-            data.forEach((d, i) => {
-                let status = (d.TIPO === 'Saída') ? "status-saida" : (d.PAGAMENTO === 'PAGO' ? "status-pago" : "status-naopago");
+            dados.forEach((d, i) => {
+                let status = (d.TIPO === 'Saída') ? "status-saida" : (d.PAGAMENTO === 'PAGO' ? "status-pago" : "status-naopago-tab");
                 lista.innerHTML += `
-                    <tr onclick="abrirDetalhes(${i})" class="hover:bg-purple-500/5 cursor-pointer border-b border-white/5 transition-colors">
+                    <tr onclick="abrirDetalhesDeFila(${d.id})" class="hover:bg-purple-500/5 cursor-pointer border-b border-white/5 transition-colors">
                         <td class="p-5 ${status}"><div class="font-bold text-slate-100">${d.DIA}</div><div class="text-[9px] text-purple-400 font-bold">${d.HORA || ''}</div></td>
                         <td class="p-5"><div class="font-bold text-slate-200 uppercase">${d.EMPRESA || '-'}</div><div class="text-[9px] text-purple-700 font-bold italic">${d.RAT || ''}</div></td>
                         <td class="p-5 text-right font-black ${d.TIPO === 'Saída' ? 'text-red-400' : 'text-emerald-400'}">R$ ${d.TOTAL || '0.00'}</td>
@@ -216,7 +264,7 @@
 
         async function carregarFechamentoFinal() {
             const container = document.getElementById('tab-fechamento');
-            container.innerHTML = '<div class="p-20 text-center font-black uppercase text-purple-500 animate-pulse tracking-widest italic">Calculando Liquid Assets...</div>';
+            container.innerHTML = '<div class="p-20 text-center font-black uppercase text-purple-500 animate-pulse tracking-widest italic">Processando Fechamentos...</div>';
             
             const { data: lancamentos } = await supabaseClient.from('atendimentos').select('*').eq('TIPO', 'Entrada');
             const { data: configs } = await supabaseClient.from('empresas_config').select('*');
@@ -257,7 +305,7 @@
                         <h3 class="text-xs md:text-sm font-black text-slate-100 uppercase tracking-widest">${mesKey}</h3>
                         <div class="flex gap-8 text-center md:text-right">
                             <div>
-                                <span class="text-[9px] font-bold text-slate-400 uppercase block">Total Pago</span>
+                                <span class="text-[9px] font-bold text-slate-400 uppercase block">Recebido no Mês</span>
                                 <span class="text-lg md:text-2xl font-black text-emerald-400 italic">R$ ${g.totalMesPago.toFixed(2)}</span>
                             </div>
                             <div>
@@ -272,7 +320,7 @@
                     const info = g.pendentes[emp];
                     const conf = configs?.find(x => x.nome_empresa === emp);
                     htmlMes += `
-                        <div class="glass p-6 rounded-3xl status-naopago shadow-xl flex flex-col justify-between">
+                        <div class="glass p-6 rounded-3xl card-pendente-moldura shadow-xl flex flex-col justify-between">
                             <div>
                                 <h4 class="font-black text-white text-[10px] uppercase mb-4 border-b border-white/10 pb-2">${emp}</h4>
                                 <div class="space-y-2 mb-6">
@@ -283,15 +331,15 @@
                                         </div>`).join('')}
                                 </div>
                             </div>
-                            <div>
-                                <div class="flex justify-between items-center mb-4">
+                            <div class="text-center">
+                                <div class="flex justify-between items-center mb-4 px-2">
                                     <span class="text-[9px] font-black text-red-500 uppercase">A Receber:</span>
                                     <span class="text-xl font-black text-purple-400 italic">R$ ${info.total.toFixed(2)}</span>
                                 </div>
-                                <button onclick="marcarComoPago([${info.ids}])" class="w-full bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-emerald-500 hover:text-white transition-all mb-4">
+                                <button onclick="marcarComoPago([${info.ids}])" class="mx-auto bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 py-2 px-6 rounded-xl text-[9px] font-black uppercase hover:bg-emerald-500 hover:text-white transition-all mb-4">
                                     Recebi o Pagamento
                                 </button>
-                                <div class="text-[8px] text-slate-500 bg-black/40 p-3 rounded-2xl border border-white/5 space-y-1">
+                                <div class="text-[8px] text-slate-500 bg-black/40 p-3 rounded-2xl border border-white/5 space-y-1 text-left">
                                     <p class="flex justify-between"><span>E-MAIL:</span> <b class="text-white">${conf?.email_fechamento || '---'}</b></p>
                                     <p class="flex justify-between"><span>PRAZO:</span> <b class="text-white">${conf?.prazo_envio || '---'}</b></p>
                                 </div>
@@ -302,7 +350,10 @@
                 htmlMes += `</div>`;
                 if(g.pagos.length > 0) {
                     htmlMes += `<div class="bg-emerald-500/5 rounded-3xl p-6 border border-emerald-500/10">
-                        <h5 class="text-[9px] font-black text-emerald-500 uppercase mb-4 tracking-widest">✔ RECEBIDOS EM ${mesKey.split(' - ')[1]}</h5>
+                        <div class="flex justify-between items-center mb-4">
+                            <h5 class="text-[9px] font-black text-emerald-500 uppercase tracking-widest italic underline">✔ HISTÓRICO DE RECEBIMENTOS (${mesKey.split(' - ')[1]})</h5>
+                            <span class="text-[10px] font-black text-emerald-600 uppercase italic">Total Pago: R$ ${g.totalMesPago.toFixed(2)}</span>
+                        </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             ${g.pagos.map(p => `
                                 <div class="flex justify-between items-center text-[9px] border-b border-white/5 pb-1">
@@ -317,20 +368,13 @@
 
         async function marcarComoPago(ids) {
             if (!confirm("Confirmar o recebimento de todos os lançamentos desta empresa neste mês?")) return;
-            const { error } = await supabaseClient
-                .from('atendimentos')
-                .update({ PAGAMENTO: 'PAGO' })
-                .in('id', ids);
-
-            if (error) alert("Erro ao atualizar: " + error.message);
-            else {
-                alert("Pagamentos atualizados com sucesso!");
-                carregarFechamentoFinal();
-            }
+            const { error } = await supabaseClient.from('atendimentos').update({ PAGAMENTO: 'PAGO' }).in('id', ids);
+            if (error) alert("Erro!");
+            else carregarFechamentoFinal();
         }
 
-        function abrirDetalhes(i) {
-            const item = dadosCompletos[i];
+        async function abrirDetalhesDeFila(id) {
+            const item = dadosCompletos.find(x => x.id === id);
             const modal = document.getElementById('modalDetalhes');
             const head = document.getElementById('modalHeader');
             const body = document.getElementById('modalBody');
@@ -368,7 +412,6 @@
             const dataIn = document.getElementById('DIA').value; 
             const parts = dataIn.split('-');
             const total = (fixVal(document.getElementById('VALOR').value) + fixVal(document.getElementById('EXTRA').value) + fixVal(document.getElementById('ALIM').value) + fixVal(document.getElementById('TRANSP').value)).toFixed(2);
-            
             const payload = {
                 TIPO: tipoAtual, DIA: `${parts[2]}/${parts[1]}/${parts[0]}`,
                 HORA: document.getElementById('HORA').value, EMPRESA: document.getElementById('EMPRESA').value,
@@ -378,8 +421,7 @@
                 EXTRA: parseFloat(document.getElementById('EXTRA').value || 0).toFixed(2),
                 ALIM: parseFloat(document.getElementById('ALIM').value || 0).toFixed(2),
                 TRANSP: parseFloat(document.getElementById('TRANSP').value || 0).toFixed(2),
-                TOTAL: total,
-                PAGAMENTO: tipoAtual === 'Saída' ? 'SAÍDA' : 'NÃO PAGO',
+                TOTAL: total, PAGAMENTO: tipoAtual === 'Saída' ? 'SAÍDA' : 'NÃO PAGO',
                 "Mês": parseInt(parts[1]), "ANO": parseInt(parts[0])
             };
             await supabaseClient.from('atendimentos').insert([payload]);
@@ -412,8 +454,7 @@
                         { label: 'Ganhos', data: entradas, borderColor: '#10b981', tension: 0.4, fill: true, backgroundColor: 'rgba(16, 185, 129, 0.1)' },
                         { label: 'Gastos', data: saidas, borderColor: '#ef4444', tension: 0.4, fill: true, backgroundColor: 'rgba(239, 68, 68, 0.1)' }
                     ]
-                },
-                options: { scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } } } }
+                }
             });
             const topEmpresas = Object.entries(empresasMap).sort((a,b) => b[1]-a[1]).slice(0, 5);
             new Chart(document.getElementById('chartEmpresas'), {
