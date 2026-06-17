@@ -3,94 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance Pro - Master Control</title>
+    <title>Finance Pro - Metallic Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        :root {
+            --roxo-metalico: #a855f7;
+            --roxo-escuro: #6b21a8;
+            --fundo-dark: #0f172a;
+        }
+
+        body {
+            background-color: var(--fundo-dark);
+            /* Textura sutil de ruído/grão */
+            background-image: url("https://www.transparenttextures.com/patterns/carbon-fibre.png");
+            color: #e2e8f0;
+        }
+
+        .card-metalico {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 1.5rem;
+        }
+
+        .btn-roxo {
+            background: linear-gradient(135deg, var(--roxo-metalico), var(--roxo-escuro));
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn-roxo:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(168, 85, 247, 0.6);
+        }
+
         .entrada-paga { border-left: 6px solid #10b981; }
         .entrada-pendente { border-left: 6px solid #facc15; }
         .saida { border-left: 6px solid #ef4444; }
-        
-        /* Modal Style */
-        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
-        
-        /* Custom Scrollbar para a tabela */
-        .table-container::-webkit-scrollbar { width: 8px; }
-        .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
-        .table-container::-webkit-scrollbar-thumb { background: #c7d2fe; border-radius: 10px; }
-        .table-container::-webkit-scrollbar-thumb:hover { background: #818cf8; }
+
+        /* Scrollbar Personalizada Roxo */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: var(--roxo-metalico); border-radius: 10px; }
+
+        .table-container {
+            max-height: 75vh;
+            overflow-y: auto;
+        }
+
+        .modal { 
+            display: none; 
+            position: fixed; 
+            z-index: 100; 
+            left: 0; top: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.85); 
+            backdrop-filter: blur(8px); 
+        }
+
+        input, textarea, select {
+            background: rgba(15, 23, 42, 0.8) !important;
+            border: 1px solid rgba(168, 85, 247, 0.2) !important;
+            color: white !important;
+        }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen font-sans overflow-x-hidden">
+<body class="min-h-screen font-sans">
 
-    <!-- Navegação Superior -->
-    <nav class="bg-indigo-950 text-white shadow-xl sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 flex justify-between items-center h-16">
-            <h1 class="font-black text-xl italic tracking-tighter">FINANCE_PRO</h1>
-            <div class="flex space-x-1 bg-indigo-900 p-1 rounded-lg">
-                <button onclick="showTab('lancamentos')" class="tab-btn px-4 py-2 rounded-md text-sm font-bold bg-indigo-700 text-white">Lançamentos</button>
-                <button onclick="showTab('fechamento')" class="tab-btn px-4 py-2 rounded-md text-sm font-bold text-indigo-300 hover:bg-indigo-800">Fechamento</button>
-                <button onclick="showTab('dashboard')" class="tab-btn px-4 py-2 rounded-md text-sm font-bold text-indigo-300 hover:bg-indigo-800">Dashboard</button>
+    <!-- Header Metalizado -->
+    <nav class="bg-slate-900/90 border-b border-purple-500/30 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 flex justify-between items-center h-20">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 btn-roxo rounded-xl flex items-center justify-center font-black italic shadow-lg">F</div>
+                <h1 class="font-black text-2xl tracking-tighter text-white">FINANCE<span class="text-purple-500 text-sm ml-1">METALLIC</span></h1>
+            </div>
+            <div class="flex bg-slate-800/50 p-1.5 rounded-2xl border border-purple-500/20">
+                <button onclick="showTab('lancamentos')" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-black transition-all btn-roxo text-white">Lançamentos</button>
+                <button onclick="showTab('fechamento')" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-black transition-all text-slate-400 hover:text-purple-400">Fechamento</button>
+                <button onclick="showTab('dashboard')" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-black transition-all text-slate-400 hover:text-purple-400">Dashboard</button>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto p-4 md:p-6">
+    <main class="max-w-7xl mx-auto p-4 md:p-8">
 
         <!-- GUIA 1: LANÇAMENTOS -->
-        <section id="tab-lancamentos" class="tab-content grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <section id="tab-lancamentos" class="tab-content grid grid-cols-1 lg:grid-cols-4 gap-8">
             
-            <!-- Painel de Inserção (Fixo na lateral) -->
+            <!-- Painel de Inserção -->
             <div class="lg:col-span-1">
-                <div class="bg-white p-6 rounded-2xl shadow-md sticky top-20 border border-slate-200">
-                    <h2 class="font-black text-slate-800 mb-4 text-xs uppercase tracking-widest">Novo Lançamento</h2>
+                <div class="card-metalico p-6 sticky top-28">
+                    <h2 class="text-purple-400 font-black text-xs uppercase tracking-[0.2em] mb-6">Novo Registro</h2>
                     
-                    <form id="formAtendimento" class="space-y-3">
+                    <form id="formAtendimento" class="space-y-4">
                         <div class="flex space-x-2">
-                            <button type="button" id="btnEntrada" onclick="setTipo('Entrada')" class="flex-1 py-2.5 rounded-xl font-bold transition-all border-2 border-emerald-500 bg-emerald-500 text-white text-xs">ENTRADA</button>
-                            <button type="button" id="btnSaida" onclick="setTipo('Saída')" class="flex-1 py-2.5 rounded-xl font-bold transition-all border-2 border-slate-200 text-slate-400 text-xs">SAÍDA</button>
+                            <button type="button" id="btnEntrada" onclick="setTipo('Entrada')" class="flex-1 py-3 rounded-xl font-black text-[10px] transition-all border-2 border-emerald-500 bg-emerald-500/20 text-emerald-400">ENTRADA</button>
+                            <button type="button" id="btnSaida" onclick="setTipo('Saída')" class="flex-1 py-3 rounded-xl font-black text-[10px] transition-all border-2 border-slate-700 text-slate-500">SAÍDA</button>
                         </div>
                         <input type="hidden" id="TIPO" value="Entrada">
 
-                        <div class="grid grid-cols-1 gap-2">
-                            <input type="date" id="DIA" class="w-full border p-2.5 rounded-xl bg-slate-50 text-sm" required>
-                            <input type="text" id="HORA" placeholder="Hora (Ex: 09:00 às 17:00)" class="w-full border p-2.5 rounded-xl bg-slate-50 text-sm">
-                            <input type="text" id="EMPRESA" placeholder="Empresa / Cliente" class="w-full border p-2.5 rounded-xl bg-slate-50 text-sm">
-                            <input type="text" id="INTERMEDIO" placeholder="Intermédio" class="w-full border p-2.5 rounded-xl bg-slate-50 text-sm">
-                            <input type="text" id="Local" placeholder="Local / Unidade" class="w-full border p-2.5 rounded-xl bg-slate-50 text-sm">
-                            <input type="text" id="RAT" placeholder="RAT / Ordem de Serviço" class="w-full border p-2.5 rounded-xl bg-slate-50 text-sm">
+                        <div class="space-y-3">
+                            <input type="date" id="DIA" class="w-full p-3 rounded-xl text-sm outline-none focus:border-purple-500 transition-all" required>
+                            <input type="text" id="HORA" placeholder="Hora (Ex: 08:00 às 12:00)" class="w-full p-3 rounded-xl text-sm outline-none">
+                            <input type="text" id="EMPRESA" placeholder="Empresa / Cliente" class="w-full p-3 rounded-xl text-sm outline-none">
+                            <input type="text" id="INTERMEDIO" placeholder="Intermédio" class="w-full p-3 rounded-xl text-sm outline-none">
+                            <input type="text" id="Local" placeholder="Local / Unidade" class="w-full p-3 rounded-xl text-sm outline-none">
+                            <input type="text" id="RAT" placeholder="RAT / OS" class="w-full p-3 rounded-xl text-sm outline-none">
                         </div>
 
-                        <textarea id="DESCRICAO" placeholder="Descrição do chamado..." class="w-full border p-2.5 rounded-xl bg-slate-50 text-sm h-20"></textarea>
+                        <textarea id="DESCRICAO" placeholder="Descrição rápida do serviço..." class="w-full p-3 rounded-xl text-sm h-24 outline-none"></textarea>
 
-                        <div class="grid grid-cols-2 gap-2 font-bold text-[10px]">
-                            <input type="number" step="0.01" id="VALOR" placeholder="VALOR R$" class="border p-2 rounded-xl bg-slate-50">
-                            <input type="number" step="0.01" id="EXTRA" placeholder="EXTRA R$" class="border p-2 rounded-xl bg-slate-50">
-                            <input type="number" step="0.01" id="ALIM" placeholder="ALIM R$" class="border p-2 rounded-xl bg-slate-50">
-                            <input type="number" step="0.01" id="TRANSP" placeholder="TRANSP R$" class="border p-2 rounded-xl bg-slate-50">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" step="0.01" id="VALOR" placeholder="VALOR R$" class="p-3 rounded-xl text-xs font-bold text-emerald-400">
+                            <input type="number" step="0.01" id="EXTRA" placeholder="EXTRA R$" class="p-3 rounded-xl text-xs font-bold text-purple-400">
+                            <input type="number" step="0.01" id="ALIM" placeholder="ALIM R$" class="p-3 rounded-xl text-xs font-bold">
+                            <input type="number" step="0.01" id="TRANSP" placeholder="TRANSP R$" class="p-3 rounded-xl text-xs font-bold">
                         </div>
 
-                        <button type="submit" id="btnSalvar" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl font-black shadow-lg transition-all text-sm">SALVAR</button>
+                        <button type="submit" id="btnSalvar" class="w-full btn-roxo text-white py-4 rounded-xl font-black tracking-widest text-sm mt-4">SALVAR</button>
                     </form>
                 </div>
             </div>
 
-            <!-- Tabela com Barra de Rolagem Independente -->
+            <!-- Tabela Estilo Futurista -->
             <div class="lg:col-span-3">
-                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
-                    <div class="table-container max-h-[78vh] overflow-y-auto">
+                <div class="card-metalico overflow-hidden border-none shadow-2xl">
+                    <div class="table-container">
                         <table class="w-full text-left text-sm relative">
-                            <thead class="bg-slate-50 border-b text-slate-400 font-bold uppercase text-[10px] sticky top-0 z-10 shadow-sm">
+                            <thead class="bg-slate-800/80 text-purple-300 font-black uppercase text-[10px] tracking-[0.15em] sticky top-0 z-10">
                                 <tr>
-                                    <th class="p-4">Data / Hora</th>
-                                    <th class="p-4">Empresa / RAT</th>
-                                    <th class="p-4">Intermédio</th>
-                                    <th class="p-4">Local</th>
-                                    <th class="p-4 text-right font-black">Total</th>
+                                    <th class="p-5">Data / Status</th>
+                                    <th class="p-5">Empresa / RAT</th>
+                                    <th class="p-5">Intermédio / Local</th>
+                                    <th class="p-5 text-right">Total</th>
                                 </tr>
                             </thead>
-                            <tbody id="listaLancamentos" class="divide-y divide-slate-100">
+                            <tbody id="listaLancamentos" class="divide-y divide-purple-500/10">
                                 <!-- Dados via JS -->
                             </tbody>
                         </table>
@@ -101,42 +151,36 @@
 
         <!-- GUIA 2: FECHAMENTO -->
         <section id="tab-fechamento" class="tab-content hidden">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6 flex flex-wrap items-end gap-4">
-                <div class="flex-1 min-w-[200px]"><input type="month" id="filtroMes" class="w-full border p-3 rounded-xl bg-slate-50 font-bold"></div>
-                <button onclick="gerarFechamento()" class="bg-emerald-600 text-white px-8 py-3 rounded-xl font-black shadow-lg hover:bg-emerald-700 transition-all">GERAR RELATÓRIO</button>
+            <div class="card-metalico p-8 mb-8 flex flex-wrap items-end gap-6 border-purple-500/50">
+                <div class="flex-1 min-w-[250px]">
+                    <label class="block text-[10px] font-black text-purple-400 uppercase tracking-widest mb-2">Mês de Referência</label>
+                    <input type="month" id="filtroMes" class="w-full p-4 rounded-2xl font-bold">
+                </div>
+                <button onclick="gerarFechamento()" class="btn-roxo text-white px-10 py-4 rounded-2xl font-black tracking-widest">FILTRAR PENDÊNCIAS</button>
             </div>
-            <div id="cardsFechamento" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            <div id="cardsFechamento" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </section>
 
         <!-- GUIA 3: DASHBOARD -->
-        <section id="tab-dashboard" class="tab-content hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h3 class="text-xs font-black text-slate-400 uppercase mb-4">Fluxo Mensal (Ganhos vs Gastos)</h3>
-                <canvas id="chartFluxo"></canvas>
-            </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h3 class="text-xs font-black text-slate-400 uppercase mb-4">Top 5 Empresas (Receita)</h3>
-                <canvas id="chartEmpresas"></canvas>
-            </div>
+        <section id="tab-dashboard" class="tab-content hidden grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="card-metalico p-8 shadow-2xl"><canvas id="chartFluxo"></canvas></div>
+            <div class="card-metalico p-8 shadow-2xl"><canvas id="chartEmpresas"></canvas></div>
         </section>
 
     </main>
 
-    <!-- MODAL DE DETALHES -->
+    <!-- MODAL -->
     <div id="modalDetalhes" class="modal flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl">
+        <div class="card-metalico w-full max-w-lg overflow-hidden border-purple-500 shadow-[0_0_50px_rgba(168,85,247,0.3)]">
             <div id="modalHeader" class="p-6 text-white flex justify-between items-center font-black">
-                <span id="modalStatusText" class="uppercase tracking-widest text-xs">Detalhes do Chamado</span>
-                <button onclick="fecharModal()" class="text-3xl">&times;</button>
+                <span id="modalStatusText" class="uppercase tracking-[0.2em] text-xs">DETALHES</span>
+                <button onclick="fecharModal()" class="text-3xl hover:text-purple-400 transition-colors">&times;</button>
             </div>
-            <div class="p-6 space-y-4 text-sm" id="modalBody">
-                <!-- Conteúdo via JS -->
-            </div>
+            <div class="p-8 space-y-6 text-sm" id="modalBody"></div>
         </div>
     </div>
 
     <script>
-        // CONFIGURAÇÕES SUPABASE COM SUA KEY INTEGRADA
         const SB_URL = "https://ctvnkjrpoyaancoxwles.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0dm5ranJwb3lhYW5jb3h3bGVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2NDA2OTYsImV4cCI6MjA5NzIxNjY5Nn0.SSY-ys7ZC2wqOdprejhYILJUzdXZjWkZ8upocSGqaQ8";
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
@@ -150,11 +194,11 @@
             const bE = document.getElementById('btnEntrada');
             const bS = document.getElementById('btnSaida');
             if(tipo === 'Entrada') {
-                bE.className = "flex-1 py-2.5 rounded-xl font-bold border-2 border-emerald-500 bg-emerald-500 text-white text-xs";
-                bS.className = "flex-1 py-2.5 rounded-xl font-bold border-2 border-slate-200 text-slate-400 text-xs";
+                bE.className = "flex-1 py-3 rounded-xl font-black text-[10px] transition-all border-2 border-emerald-500 bg-emerald-500 text-white";
+                bS.className = "flex-1 py-3 rounded-xl font-black text-[10px] transition-all border-2 border-slate-700 text-slate-500";
             } else {
-                bS.className = "flex-1 py-2.5 rounded-xl font-bold border-2 border-red-500 bg-red-500 text-white text-xs";
-                bE.className = "flex-1 py-2.5 rounded-xl font-bold border-2 border-slate-200 text-slate-400 text-xs";
+                bS.className = "flex-1 py-3 rounded-xl font-black text-[10px] transition-all border-2 border-red-500 bg-red-500 text-white";
+                bE.className = "flex-1 py-3 rounded-xl font-black text-[10px] transition-all border-2 border-slate-700 text-slate-500";
             }
         }
 
@@ -162,10 +206,9 @@
             document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
             document.getElementById('tab-' + tabId).classList.remove('hidden');
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('bg-indigo-700', 'text-white');
-                btn.classList.add('text-indigo-300');
+                btn.className = "tab-btn px-5 py-2.5 rounded-xl text-sm font-black transition-all text-slate-400 hover:text-purple-400";
             });
-            event.currentTarget.classList.add('bg-indigo-700', 'text-white');
+            event.currentTarget.className = "tab-btn px-5 py-2.5 rounded-xl text-sm font-black transition-all btn-roxo text-white shadow-lg";
             if(tabId === 'dashboard') renderCharts();
             if(tabId === 'lancamentos') carregarLancamentos();
         }
@@ -180,36 +223,85 @@
 
         async function carregarLancamentos() {
             const lista = document.getElementById('listaLancamentos');
-            lista.innerHTML = '<tr><td colspan="5" class="p-10 text-center font-bold text-slate-400 italic">Buscando histórico...</td></tr>';
+            lista.innerHTML = '<tr><td colspan="4" class="p-10 text-center font-black text-purple-500/50 italic animate-pulse">ACESSANDO BANCO DE DADOS...</td></tr>';
 
-            const { data, error } = await supabaseClient
-                .from('atendimentos')
-                .select('*')
-                .order('id', { ascending: false });
-
+            const { data, error } = await supabaseClient.from('atendimentos').select('*').order('id', { ascending: false });
             if(error) return;
-            
             dadosCompletos = data;
             lista.innerHTML = '';
 
             data.forEach((d, index) => {
                 let statusCor = (d.TIPO === 'Saída') ? "saida" : (d.PAGAMENTO === 'PAGO' ? "entrada-paga" : "entrada-pendente");
                 lista.innerHTML += `
-                    <tr onclick="abrirDetalhes(${index})" class="hover:bg-indigo-50/50 cursor-pointer transition border-b border-slate-100">
-                        <td class="p-4 ${statusCor}">
-                            <div class="font-black text-slate-800">${d.DIA || '-'}</div>
-                            <div class="text-[10px] text-slate-400">${d.HORA || ''}</div>
+                    <tr onclick="abrirDetalhes(${index})" class="hover:bg-purple-500/5 cursor-pointer transition border-b border-purple-500/10">
+                        <td class="p-5 ${statusCor}">
+                            <div class="font-black text-slate-200">${d.DIA || '-'}</div>
+                            <div class="text-[9px] text-purple-400 font-bold uppercase">${d.HORA || ''}</div>
                         </td>
-                        <td class="p-4">
-                            <div class="font-bold text-slate-700 leading-tight">${d.EMPRESA || '-'}</div>
-                            <div class="text-[10px] text-indigo-500 font-black italic uppercase">${d.RAT || ''}</div>
+                        <td class="p-5">
+                            <div class="font-black text-slate-300 leading-tight">${d.EMPRESA || '-'}</div>
+                            <div class="text-[10px] text-purple-500 font-black italic uppercase">${d.RAT || ''}</div>
                         </td>
-                        <td class="p-4 text-slate-500 text-xs">${d["INTERMÉDIO"] || d.INTERMEDIO || '-'}</td>
-                        <td class="p-4 text-slate-500 text-xs">${d.Local || '-'}</td>
-                        <td class="p-4 text-right">
-                            <div class="font-black ${d.TIPO === 'Saída' ? 'text-red-600' : 'text-emerald-600'} text-base">R$ ${d.TOTAL || '0,00'}</div>
+                        <td class="p-5 text-slate-400 text-xs">
+                             <span class="text-purple-300/50 uppercase text-[9px] block font-black">Intermédio / Local</span>
+                             ${d["INTERMÉDIO"] || d.INTERMEDIO || '-'} | ${d.Local || '-'}
+                        </td>
+                        <td class="p-5 text-right font-black text-base ${d.TIPO === 'Saída' ? 'text-red-400' : 'text-emerald-400'}">
+                            R$ ${d.TOTAL || '0,00'}
                         </td>
                     </tr>
+                `;
+            });
+        }
+
+        async function gerarFechamento() {
+            const filtro = document.getElementById('filtroMes').value;
+            if(!filtro) return alert("Selecione o mês!");
+            const [ano, mes] = filtro.split('-').map(Number);
+            
+            const container = document.getElementById('cardsFechamento');
+            container.innerHTML = '<div class="col-span-full text-center py-10 font-black text-purple-500 animate-pulse uppercase">PROCESSANDO FECHAMENTO...</div>';
+
+            // Correção na query: Busca tanto "NÃO PAGO" quanto "NAO PAGO" e garante o filtro de mês/ano
+            const { data: chamados, error } = await supabaseClient.from('atendimentos')
+                .select('*')
+                .eq('ANO', ano)
+                .eq('Mês', mes)
+                .eq('TIPO', 'Entrada')
+                .or('PAGAMENTO.eq.NÃO PAGO,PAGAMENTO.eq.NAO PAGO'); // Lida com o erro do acento no banco
+            
+            if(error) { console.error(error); return; }
+
+            const { data: configs } = await supabaseClient.from('empresas_config').select('*');
+            
+            if(!chamados || chamados.length === 0) {
+                container.innerHTML = '<div class="col-span-full p-20 text-center card-metalico text-slate-400 font-black italic uppercase tracking-widest">Nenhuma pendência encontrada para este mês. 💎</div>';
+                return;
+            }
+
+            const agrupado = {};
+            chamados.forEach(c => {
+                const emp = c.EMPRESA || 'Outros';
+                if(!agrupado[emp]) agrupado[emp] = { total: 0, qtd: 0 };
+                agrupado[emp].total += fixVal(c.TOTAL);
+                agrupado[emp].qtd++;
+            });
+
+            container.innerHTML = "";
+            Object.keys(agrupado).forEach(emp => {
+                const conf = configs?.find(x => x.nome_empresa === emp);
+                container.innerHTML += `
+                    <div class="card-metalico p-6 border-l-[12px] border-amber-500 shadow-2xl hover:scale-[1.02] transition-transform">
+                        <h4 class="font-black text-white uppercase text-xs mb-4 border-b border-white/10 pb-3 tracking-widest">${emp}</h4>
+                        <div class="flex justify-between items-center mb-6">
+                            <span class="text-[10px] text-slate-400 font-black uppercase">Chamados: ${agrupado[emp].qtd}</span>
+                            <span class="text-2xl font-black text-purple-400 italic">R$ ${agrupado[emp].total.toFixed(2)}</span>
+                        </div>
+                        <div class="text-[10px] text-slate-400 bg-black/40 p-4 rounded-2xl space-y-2 border border-white/5 font-medium">
+                            <p class="flex justify-between"><span>E-MAIL:</span> <b class="text-white">${conf?.email_fechamento || '---'}</b></p>
+                            <p class="flex justify-between"><span>PRAZO:</span> <b class="text-white">${conf?.prazo_envio || '---'}</b></p>
+                        </div>
+                    </div>
                 `;
             });
         }
@@ -219,33 +311,35 @@
             const modal = document.getElementById('modalDetalhes');
             const header = document.getElementById('modalHeader');
             const body = document.getElementById('modalBody');
-            const statusLabel = document.getElementById('modalStatusText');
 
-            let bg = "bg-red-500";
-            if(item.TIPO === 'Entrada') bg = (item.PAGAMENTO === 'PAGO') ? "bg-emerald-500" : "bg-amber-500";
-            header.className = `p-6 text-white flex justify-between items-center ${bg}`;
-            statusLabel.innerText = `${item.TIPO} | ${item.PAGAMENTO || 'NÃO PAGO'}`;
+            let bg = "bg-red-500/80";
+            if(item.TIPO === 'Entrada') bg = (item.PAGAMENTO === 'PAGO') ? "bg-emerald-500/80" : "bg-amber-500/80";
+            header.className = `p-6 text-white flex justify-between items-center ${bg} border-b border-white/20`;
 
             body.innerHTML = `
-                <div class="grid grid-cols-2 gap-4 border-b pb-4">
-                    <div><label class="text-[10px] font-black text-slate-300 uppercase">Empresa</label><p class="font-bold text-slate-800">${item.EMPRESA || '-'}</p></div>
-                    <div><label class="text-[10px] font-black text-slate-300 uppercase">Número RAT</label><p class="font-bold text-indigo-600">${item.RAT || '-'}</p></div>
-                    <div><label class="text-[10px] font-black text-slate-300 uppercase">Intermédio</label><p class="font-bold text-slate-700">${item["INTERMÉDIO"] || item.INTERMEDIO || '-'}</p></div>
-                    <div><label class="text-[10px] font-black text-slate-300 uppercase">Local</label><p class="font-bold text-slate-700">${item.Local || '-'}</p></div>
+                <div class="grid grid-cols-2 gap-6 border-b border-white/10 pb-6">
+                    <div><label class="text-[9px] font-black text-purple-400 uppercase tracking-widest">Empresa</label><p class="font-black text-lg text-white">${item.EMPRESA || '-'}</p></div>
+                    <div><label class="text-[9px] font-black text-purple-400 uppercase tracking-widest">Número RAT</label><p class="font-black text-lg text-purple-400 italic">${item.RAT || '-'}</p></div>
+                </div>
+                <div class="grid grid-cols-2 gap-6">
+                    <div><label class="text-[9px] font-black text-purple-400 uppercase tracking-widest">Intermédio</label><p class="font-bold text-slate-300">${item["INTERMÉDIO"] || item.INTERMEDIO || '-'}</p></div>
+                    <div><label class="text-[9px] font-black text-purple-400 uppercase tracking-widest">Local</label><p class="font-bold text-slate-300">${item.Local || '-'}</p></div>
                 </div>
                 <div>
-                    <label class="text-[10px] font-black text-slate-300 uppercase">Descrição</label>
-                    <div class="bg-slate-50 p-4 rounded-xl border italic text-xs text-slate-600 mt-1">"${item["DESCRIÇÃO"] || 'Nenhuma descrição detalhada.'}"</div>
+                    <label class="text-[9px] font-black text-purple-400 uppercase tracking-widest">Descrição Técnica</label>
+                    <div class="bg-black/50 p-4 rounded-2xl border border-white/10 italic text-xs text-slate-400 leading-relaxed mt-2">"${item["DESCRIÇÃO"] || '---'}"</div>
                 </div>
-                <div class="grid grid-cols-4 gap-2 text-center">
-                    <div class="bg-slate-50 p-2 rounded-lg"><label class="text-[8px] font-black text-slate-400 block uppercase">Base</label><p class="font-bold text-slate-700">R$ ${item.VALOR || '0,00'}</p></div>
-                    <div class="bg-slate-50 p-2 rounded-lg"><label class="text-[8px] font-black text-slate-400 block uppercase">Extra</label><p class="font-bold text-slate-700">R$ ${item.EXTRA || '0,00'}</p></div>
-                    <div class="bg-slate-50 p-2 rounded-lg"><label class="text-[8px] font-black text-slate-400 block uppercase">Alim</label><p class="font-bold text-slate-700">R$ ${item.ALIM || '0,00'}</p></div>
-                    <div class="bg-slate-50 p-2 rounded-lg"><label class="text-[8px] font-black text-slate-400 block uppercase">Transp</label><p class="font-bold text-slate-700">R$ ${item.TRANSP || '0,00'}</p></div>
+                <div class="grid grid-cols-4 gap-2">
+                    ${['VALOR','EXTRA','ALIM','TRANSP'].map(k => `
+                        <div class="bg-slate-800 p-3 rounded-xl border border-white/5 text-center">
+                            <label class="text-[8px] font-black text-slate-500 block uppercase">${k}</label>
+                            <p class="font-black text-xs text-slate-200">R$ ${item[k] || '0'}</p>
+                        </div>
+                    `).join('')}
                 </div>
-                <div class="bg-indigo-900 p-5 rounded-2xl text-white flex justify-between items-center shadow-lg">
-                    <span class="text-[10px] font-black uppercase tracking-widest opacity-60">Total do Lançamento</span>
-                    <span class="text-2xl font-black italic">R$ ${item.TOTAL || '0,00'}</span>
+                <div class="btn-roxo p-6 rounded-3xl text-white flex justify-between items-center shadow-2xl">
+                    <span class="text-[10px] font-black uppercase tracking-widest opacity-70 italic">Faturamento Total</span>
+                    <span class="text-3xl font-black italic tracking-tighter">R$ ${item.TOTAL || '0,00'}</span>
                 </div>
             `;
             modal.style.display = "flex";
@@ -253,89 +347,37 @@
 
         function fecharModal() { document.getElementById('modalDetalhes').style.display = "none"; }
 
+        // Scripts de Salvamento e Charts (Adaptados para Dark)
         document.getElementById('formAtendimento').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSalvar');
-            btn.disabled = true; btn.innerText = "SALVANDO...";
-
+            btn.disabled = true; btn.innerText = "GRAVANDO...";
             const dIn = document.getElementById('DIA').value;
-            const v = parseFloat(document.getElementById('VALOR').value || 0);
-            const ex = parseFloat(document.getElementById('EXTRA').value || 0);
-            const al = parseFloat(document.getElementById('ALIM').value || 0);
-            const tr = parseFloat(document.getElementById('TRANSP').value || 0);
-            
+            const v = fixVal(document.getElementById('VALOR').value);
+            const ex = fixVal(document.getElementById('EXTRA').value);
+            const al = fixVal(document.getElementById('ALIM').value);
+            const tr = fixVal(document.getElementById('TRANSP').value);
             const payload = {
-                TIPO: tipoAtual,
-                DIA: dIn.split('-').reverse().join('/'),
-                HORA: document.getElementById('HORA').value,
-                EMPRESA: document.getElementById('EMPRESA').value,
-                "INTERMÉDIO": document.getElementById('INTERMEDIO').value,
-                Local: document.getElementById('Local').value,
-                RAT: document.getElementById('RAT').value,
-                "DESCRIÇÃO": document.getElementById('DESCRICAO').value,
+                TIPO: tipoAtual, DIA: dIn.split('-').reverse().join('/'),
+                HORA: document.getElementById('HORA').value, EMPRESA: document.getElementById('EMPRESA').value,
+                "INTERMÉDIO": document.getElementById('INTERMEDIO').value, Local: document.getElementById('Local').value,
+                RAT: document.getElementById('RAT').value, "DESCRIÇÃO": document.getElementById('DESCRICAO').value,
                 VALOR: v.toFixed(2), EXTRA: ex.toFixed(2), ALIM: al.toFixed(2), TRANSP: tr.toFixed(2),
                 TOTAL: (v + ex + al + tr).toFixed(2),
                 PAGAMENTO: tipoAtual === 'Saída' ? 'SAÍDA' : 'NÃO PAGO',
-                "Mês": parseInt(dIn.split('-')[1]),
-                "ANO": parseInt(dIn.split('-')[0])
+                "Mês": parseInt(dIn.split('-')[1]), "ANO": parseInt(dIn.split('-')[0])
             };
-
-            const { error } = await supabaseClient.from('atendimentos').insert([payload]);
-            if(error) alert(error.message);
-            else { location.reload(); }
+            await supabaseClient.from('atendimentos').insert([payload]);
+            location.reload();
         });
-
-        async function gerarFechamento() {
-            const filtro = document.getElementById('filtroMes').value;
-            if(!filtro) return alert("Escolha o mês!");
-            const [ano, mes] = filtro.split('-').map(Number);
-            
-            const { data: chamados } = await supabaseClient.from('atendimentos')
-                .select('*').eq('ANO', ano).eq('Mês', mes).eq('PAGAMENTO', 'NÃO PAGO').eq('TIPO', 'Entrada');
-            
-            const { data: configs } = await supabaseClient.from('empresas_config').select('*');
-            const container = document.getElementById('cardsFechamento');
-            
-            if(!chamados || chamados.length === 0) {
-                container.innerHTML = '<div class="col-span-full p-10 text-center text-slate-400 font-bold italic">Nada pendente para este mês. 💸</div>';
-                return;
-            }
-
-            const agrupado = {};
-            chamados.forEach(c => {
-                if(!agrupado[c.EMPRESA]) agrupado[c.EMPRESA] = { total: 0, qtd: 0 };
-                agrupado[c.EMPRESA].total += fixVal(c.TOTAL);
-                agrupado[c.EMPRESA].qtd++;
-            });
-
-            container.innerHTML = "";
-            Object.keys(agrupado).forEach(emp => {
-                const conf = configs?.find(x => x.nome_empresa === emp);
-                container.innerHTML += `
-                    <div class="bg-white p-6 rounded-2xl border-l-8 border-amber-500 shadow-lg">
-                        <h4 class="font-black text-slate-800 uppercase text-sm mb-4 border-b pb-2">${emp}</h4>
-                        <div class="flex justify-between items-center mb-6">
-                            <span class="text-xs text-slate-400 font-bold">CHAMADOS: ${agrupado[emp].qtd}</span>
-                            <span class="text-xl font-black text-indigo-700 italic">R$ ${agrupado[emp].total.toFixed(2)}</span>
-                        </div>
-                        <div class="text-[10px] text-slate-400 bg-slate-50 p-3 rounded-xl space-y-1">
-                            <p><b>EMAIL:</b> ${conf?.email_fechamento || 'N/A'}</p>
-                            <p><b>PRAZO:</b> ${conf?.prazo_envio || '-'}</p>
-                        </div>
-                    </div>
-                `;
-            });
-        }
 
         let fluxoChart, empresaChart;
         async function renderCharts() {
             const { data } = await supabaseClient.from('atendimentos').select('*');
             if(!data) return;
-
             const entradas = new Array(12).fill(0);
             const saidas = new Array(12).fill(0);
             const empresasMap = {};
-
             data.forEach(d => {
                 const m = parseInt(d["Mês"]) - 1;
                 const val = fixVal(d.TOTAL);
@@ -346,10 +388,10 @@
                     } else { saidas[m] += val; }
                 }
             });
-
+            Chart.defaults.color = '#94a3b8';
+            Chart.defaults.font.family = 'Inter, sans-serif';
             if(fluxoChart) fluxoChart.destroy();
             if(empresaChart) empresaChart.destroy();
-
             fluxoChart = new Chart(document.getElementById('chartFluxo'), {
                 type: 'line',
                 data: {
@@ -358,16 +400,17 @@
                         { label: 'Entradas', data: entradas, borderColor: '#10b981', tension: 0.4, fill: true, backgroundColor: 'rgba(16, 185, 129, 0.1)' },
                         { label: 'Saídas', data: saidas, borderColor: '#ef4444', tension: 0.4, fill: true, backgroundColor: 'rgba(239, 68, 68, 0.1)' }
                     ]
-                }
+                },
+                options: { scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }
             });
-
             const topEmpresas = Object.entries(empresasMap).sort((a,b) => b[1]-a[1]).slice(0, 5);
             empresaChart = new Chart(document.getElementById('chartEmpresas'), {
                 type: 'doughnut',
                 data: {
                     labels: topEmpresas.map(x => x[0]),
-                    datasets: [{ data: topEmpresas.map(x => x[1]), backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'] }]
-                }
+                    datasets: [{ data: topEmpresas.map(x => x[1]), backgroundColor: ['#a855f7', '#10b981', '#f59e0b', '#ef4444', '#3b82f6'], borderWidth: 0 }]
+                },
+                options: { plugins: { legend: { position: 'bottom' } } }
             });
         }
 
