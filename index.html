@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance Pro - Metallic Dark</title>
+    <title>Finance Pro - Metallic Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -30,17 +30,14 @@
             transition: all 0.3s ease;
         }
 
-        /* Cores de Status */
-        .status-pago { border-left: 8px solid #10b981 !important; background: rgba(16, 185, 129, 0.1) !important; }
-        .status-naopago { border-left: 8px solid #facc15 !important; background: rgba(250, 204, 21, 0.1) !important; }
+        .status-pago { border-left: 8px solid #10b981 !important; }
+        .status-naopago { border-left: 8px solid #facc15 !important; background: rgba(250, 204, 21, 0.05) !important; }
         .status-saida { border-left: 8px solid #ef4444 !important; }
 
-        /* Tabela Scroll */
-        .table-container { max-height: 70vh; overflow-y: auto; }
+        .table-container { max-height: 72vh; overflow-y: auto; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: var(--roxo); border-radius: 10px; }
 
-        /* MODAL FIX - Agora inicia escondido */
         #modalDetalhes { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); }
 
         input, textarea, select {
@@ -82,35 +79,36 @@
                         <input type="text" id="Local" placeholder="Unidade" class="w-full p-2.5 rounded-xl text-xs">
                         <input type="text" id="RAT" placeholder="RAT / OS" class="w-full p-2.5 rounded-xl text-xs">
                         <textarea id="DESCRICAO" placeholder="Descrição..." class="w-full p-2.5 rounded-xl text-xs h-20"></textarea>
-                        <div class="grid grid-cols-2 gap-2">
-                            <input type="number" step="0.01" id="VALOR" placeholder="Valor" class="p-2.5 rounded-xl text-xs font-bold text-emerald-400">
-                            <input type="number" step="0.01" id="EXTRA" placeholder="Extra" class="p-2.5 rounded-xl text-xs font-bold text-purple-400">
-                            <input type="number" step="0.01" id="ALIM" placeholder="Alim" class="p-2.5 rounded-xl text-xs font-bold">
-                            <input type="number" step="0.01" id="TRANSP" placeholder="Transp" class="p-2.5 rounded-xl text-xs font-bold">
+                        <div class="grid grid-cols-2 gap-2 text-[10px]">
+                            <input type="number" step="0.01" id="VALOR" placeholder="Valor" class="p-2 rounded-xl">
+                            <input type="number" step="0.01" id="EXTRA" placeholder="Extra" class="p-2 rounded-xl">
+                            <input type="number" step="0.01" id="ALIM" placeholder="Alim" class="p-2 rounded-xl">
+                            <input type="number" step="0.01" id="TRANSP" placeholder="Transp" class="p-2 rounded-xl">
                         </div>
-                        <button type="submit" id="btnSalvar" class="w-full btn-roxo text-white py-3 rounded-xl font-black text-xs tracking-widest uppercase">Salvar Lançamento</button>
+                        <button type="submit" id="btnSalvar" class="w-full btn-roxo text-white py-3 rounded-xl font-black text-xs uppercase">Salvar</button>
                     </form>
                 </div>
             </div>
 
             <div class="lg:col-span-3 card-metalico overflow-hidden">
                 <div class="table-container">
-                    <table class="w-full text-left text-xs">
+                    <table class="w-full text-left text-xs relative">
                         <thead class="bg-slate-800 text-purple-300 font-black uppercase sticky top-0 z-10 shadow-lg">
                             <tr><th class="p-4">Data / Hora</th><th class="p-4">Empresa / RAT</th><th class="p-4">Unidade</th><th class="p-4 text-right">Total</th></tr>
                         </thead>
-                        <tbody id="listaLancamentos" class="divide-y divide-purple-500/10"></tbody>
+                        <tbody id="listaLancamentos" class="divide-y divide-purple-500/10 text-slate-300"></tbody>
                     </table>
                 </div>
             </div>
         </section>
 
-        <!-- GUIA 2: FECHAMENTO (REMODELADA) -->
-        <section id="tab-fechamento" class="tab-content hidden space-y-10">
-            <h2 class="text-xl font-black text-purple-400 uppercase italic border-b border-purple-500/30 pb-4">Fechamentos Gerais por Empresa</h2>
-            <div id="containerFechamento" class="space-y-12">
-                <!-- Grupos de Mês/Ano via JS -->
+        <!-- GUIA 2: FECHAMENTO -->
+        <section id="tab-fechamento" class="tab-content hidden space-y-12">
+            <div class="flex justify-between items-center border-b border-purple-500/30 pb-4">
+                <h2 class="text-xl font-black text-purple-400 uppercase italic">Pendências de Pagamento</h2>
+                <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Foco em Não Pagos</span>
             </div>
+            <div id="containerFechamento" class="space-y-16"></div>
         </section>
 
         <!-- GUIA 3: DASHBOARD -->
@@ -155,8 +153,9 @@
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
             document.getElementById('tab-' + tabId).classList.remove('hidden');
-            if(tabId === 'fechamento') carregarFechamentoCompleto();
+            if(tabId === 'fechamento') carregarFechamentoInteligente();
             if(tabId === 'dashboard') renderCharts();
+            if(tabId === 'lancamentos') carregarLancamentos();
         }
 
         function fixVal(v) {
@@ -167,9 +166,27 @@
             return parseFloat(str) || 0;
         }
 
+        // --- TRADUTOR DE DATA (YYYY/MM/DD <-> DD/MM/YYYY) ---
+        function obterMesAno(item) {
+            let m = parseInt(item["Mês"]);
+            let a = parseInt(item.ANO);
+            
+            if (isNaN(m) || isNaN(a)) {
+                const parts = (item.DIA || "").split('/');
+                if (parts[0].length === 4) { // Padrão antigo: YYYY/MM/DD
+                    a = parseInt(parts[0]);
+                    m = parseInt(parts[1]);
+                } else { // Padrão novo: DD/MM/YYYY
+                    a = parseInt(parts[2]);
+                    m = parseInt(parts[1]);
+                }
+            }
+            return { m, a };
+        }
+
         async function carregarLancamentos() {
             const lista = document.getElementById('listaLancamentos');
-            lista.innerHTML = '<tr><td colspan="4" class="p-10 text-center font-black animate-pulse">CARREGANDO...</td></tr>';
+            lista.innerHTML = '<tr><td colspan="4" class="p-10 text-center font-black animate-pulse uppercase text-purple-500">Acessando Histórico...</td></tr>';
             const { data, error } = await supabaseClient.from('atendimentos').select('*').order('id', { ascending: false });
             if(error) return;
             dadosCompletos = data;
@@ -178,69 +195,72 @@
                 let status = (d.TIPO === 'Saída') ? "status-saida" : (d.PAGAMENTO === 'PAGO' ? "status-pago" : "status-naopago");
                 lista.innerHTML += `
                     <tr onclick="abrirDetalhes(${i})" class="hover:bg-white/5 cursor-pointer border-b border-white/5">
-                        <td class="p-4 ${status}">
-                            <div class="font-black text-slate-200">${d.DIA}</div>
-                            <div class="text-[9px] text-purple-400 font-bold">${d.HORA || ''}</div>
-                        </td>
-                        <td class="p-4">
-                            <div class="font-black text-slate-300 uppercase">${d.EMPRESA || '-'}</div>
-                            <div class="text-[9px] text-purple-600 font-black italic italic">${d.RAT || ''}</div>
-                        </td>
+                        <td class="p-4 ${status}"><div class="font-black">${d.DIA}</div><div class="text-[9px] text-purple-400 font-bold">${d.HORA || ''}</div></td>
+                        <td class="p-4"><div class="font-black uppercase">${d.EMPRESA || '-'}</div><div class="text-[9px] text-purple-600 font-black italic">${d.RAT || ''}</div></td>
                         <td class="p-4 text-slate-500 text-[10px]">${d.Local || '-'}</td>
                         <td class="p-4 text-right font-black ${d.TIPO === 'Saída' ? 'text-red-400' : 'text-emerald-400'}">R$ ${d.TOTAL || '0.00'}</td>
-                    </tr>
-                `;
+                    </tr>`;
             });
         }
 
-        async function carregarFechamentoCompleto() {
+        async function carregarFechamentoInteligente() {
             const container = document.getElementById('containerFechamento');
-            container.innerHTML = '<div class="p-20 text-center font-black uppercase text-purple-500 animate-pulse">Mapeando histórico financeiro...</div>';
+            container.innerHTML = '<div class="p-20 text-center font-black uppercase text-purple-500 animate-pulse">Organizando Pendências...</div>';
             
             const { data: lancamentos } = await supabaseClient.from('atendimentos').select('*').eq('TIPO', 'Entrada');
             const { data: configs } = await supabaseClient.from('empresas_config').select('*');
 
-            // Agrupar por Ano/Mês
             const grupos = {};
+            const mesNome = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
             lancamentos.forEach(l => {
-                const mesNome = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-                const chave = `${l.ANO} - ${mesNome[parseInt(l["Mês"])-1]}`;
-                if(!grupos[chave]) grupos[chave] = {};
+                const dateData = obterMesAno(l);
+                const chave = `${dateData.a} - ${mesNome[dateData.m - 1]}`;
                 
-                const emp = l.EMPRESA || 'Outros';
-                if(!grupos[chave][emp]) grupos[chave][emp] = { total: 0, pago: true };
+                if(!grupos[chave]) grupos[chave] = { pendentes: {}, totalPago: 0 };
                 
-                grupos[chave][emp].total += fixVal(l.TOTAL);
-                if(l.PAGAMENTO !== 'PAGO') grupos[chave][emp].pago = false;
+                if(l.PAGAMENTO !== 'PAGO') {
+                    const emp = l.EMPRESA || 'Outros';
+                    if(!grupos[chave].pendentes[emp]) grupos[chave].pendentes[emp] = { total: 0, qtd: 0 };
+                    grupos[chave].pendentes[emp].total += fixVal(l.TOTAL);
+                    grupos[chave].pendentes[emp].qtd++;
+                } else {
+                    grupos[chave].totalPago += fixVal(l.TOTAL);
+                }
             });
 
             container.innerHTML = '';
-            // Ordenar por ano desc
-            const chavesOrdenadas = Object.keys(grupos).sort((a,b) => b.localeCompare(a));
-
-            chavesOrdenadas.forEach(mes => {
-                let htmlMes = `<div class="space-y-4">
-                    <h3 class="text-sm font-black text-slate-400 border-l-4 border-purple-600 pl-3 uppercase tracking-tighter">${mes}</h3>
+            Object.keys(grupos).sort((a,b) => b.localeCompare(a)).forEach(mes => {
+                const g = grupos[mes];
+                let htmlMes = `<div class="space-y-6">
+                    <div class="flex justify-between items-end border-l-4 border-purple-600 pl-4">
+                        <h3 class="text-sm font-black text-slate-400 uppercase tracking-tighter">${mes}</h3>
+                        <span class="text-[9px] font-black text-emerald-500 uppercase italic">Já Recebido: R$ ${g.totalPago.toFixed(2)}</span>
+                    </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">`;
                 
-                Object.keys(grupos[mes]).forEach(emp => {
-                    const c = grupos[mes][emp];
-                    const config = configs?.find(x => x.nome_empresa === emp);
-                    const statusClass = c.pago ? 'status-pago' : 'status-naopago';
-                    
-                    htmlMes += `
-                        <div class="card-metalico p-5 ${statusClass} shadow-xl">
-                            <h4 class="font-black text-white text-[10px] uppercase mb-3 border-b border-white/10 pb-2">${emp}</h4>
-                            <div class="flex justify-between items-end mb-4">
-                                <span class="text-[9px] font-black uppercase text-slate-500">${c.pago ? 'CONCLUÍDO' : 'PENDENTE'}</span>
-                                <span class="text-lg font-black text-purple-400 italic">R$ ${c.total.toFixed(2)}</span>
-                            </div>
-                            <div class="text-[8px] text-slate-500 space-y-1 bg-black/30 p-2 rounded-lg">
-                                <p>📧 ${config?.email_fechamento || 'N/A'}</p>
-                                <p>⏳ ${config?.prazo_envio || 'S/N'}</p>
-                            </div>
-                        </div>`;
-                });
+                const empresasPendentes = Object.keys(g.pendentes);
+                
+                if(empresasPendentes.length === 0) {
+                    htmlMes += `<div class="col-span-full py-4 text-[10px] text-slate-600 italic uppercase">Tudo em dia para este mês! 💎</div>`;
+                } else {
+                    empresasPendentes.forEach(emp => {
+                        const p = g.pendentes[emp];
+                        const config = configs?.find(x => x.nome_empresa === emp);
+                        htmlMes += `
+                            <div class="card-metalico p-5 status-naopago shadow-xl">
+                                <h4 class="font-black text-white text-[10px] uppercase mb-3 border-b border-white/10 pb-2">${emp}</h4>
+                                <div class="flex justify-between items-end mb-4">
+                                    <span class="text-[8px] font-black text-amber-500 uppercase tracking-widest italic">${p.qtd} Chamados</span>
+                                    <span class="text-lg font-black text-purple-400 italic">R$ ${p.total.toFixed(2)}</span>
+                                </div>
+                                <div class="text-[8px] text-slate-500 bg-black/40 p-2 rounded-lg space-y-1">
+                                    <p class="flex justify-between"><span>📧</span> <b>${config?.email_fechamento || '---'}</b></p>
+                                    <p class="flex justify-between"><span>⏳</span> <b>${config?.prazo_envio || '---'}</b></p>
+                                </div>
+                            </div>`;
+                    });
+                }
                 htmlMes += `</div></div>`;
                 container.innerHTML += htmlMes;
             });
@@ -256,9 +276,13 @@
             head.className = `p-4 flex justify-between items-center font-black text-white ${bg}`;
             
             body.innerHTML = `
-                <div class="grid grid-cols-2 gap-4 border-b border-white/5 pb-4">
+                <div class="grid grid-cols-2 gap-4 border-b border-white/5 pb-4 uppercase">
                     <div><label class="text-[9px] font-black text-purple-400">EMPRESA</label><p class="font-black text-white">${item.EMPRESA || '-'}</p></div>
                     <div><label class="text-[9px] font-black text-purple-400">RAT</label><p class="font-black text-purple-400 italic">${item.RAT || '-'}</p></div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-b border-white/5 pb-4 uppercase">
+                    <div><label class="text-[9px] font-black text-purple-400">Intermédio</label><p class="font-black text-white">${item["INTERMÉDIO"] || item.INTERMEDIO || '-'}</p></div>
+                    <div><label class="text-[9px] font-black text-purple-400">Local</label><p class="font-black text-white">${item.Local || '-'}</p></div>
                 </div>
                 <div class="bg-black/30 p-4 rounded-xl italic text-slate-400 leading-relaxed border border-white/5">"${item["DESCRIÇÃO"] || '---'}"</div>
                 <div class="grid grid-cols-4 gap-2 text-center text-[9px] font-black">
@@ -280,18 +304,18 @@
             e.preventDefault();
             const btn = document.getElementById('btnSalvar');
             btn.disabled = true; btn.innerText = "GRAVANDO...";
-            const dataInput = document.getElementById('DIA').value; // Padrão HTML5: YYYY-MM-DD
+            const dataInput = document.getElementById('DIA').value; 
             const v = fixVal(document.getElementById('VALOR').value);
             const ex = fixVal(document.getElementById('EXTRA').value);
             const al = fixVal(document.getElementById('ALIM').value);
             const tr = fixVal(document.getElementById('TRANSP').value);
             
-            // Garantir que a data enviada segue o padrão YYYY/MM/DD que você solicitou
-            const dataFormatada = dataInput.replace(/-/g, '/');
+            const parts = dataInput.split('-');
+            const dataFormatada = `${parts[2]}/${parts[1]}/${parts[0]}`;
 
             const payload = {
                 TIPO: tipoAtual,
-                DIA: dataFormatada.split('/').reverse().join('/'), // Mantém DD/MM/YYYY para a visualização na tabela
+                DIA: dataFormatada,
                 HORA: document.getElementById('HORA').value,
                 EMPRESA: document.getElementById('EMPRESA').value,
                 "INTERMÉDIO": document.getElementById('INTERMEDIO').value,
@@ -301,8 +325,8 @@
                 VALOR: v.toFixed(2), EXTRA: ex.toFixed(2), ALIM: al.toFixed(2), TRANSP: tr.toFixed(2),
                 TOTAL: (v + ex + al + tr).toFixed(2),
                 PAGAMENTO: tipoAtual === 'Saída' ? 'SAÍDA' : 'NÃO PAGO',
-                "Mês": parseInt(dataInput.split('-')[1]),
-                "ANO": parseInt(dataInput.split('-')[0])
+                "Mês": parseInt(parts[1]),
+                "ANO": parseInt(parts[0])
             };
 
             await supabaseClient.from('atendimentos').insert([payload]);
@@ -317,7 +341,8 @@
             const saidas = new Array(12).fill(0);
             const empresasMap = {};
             data.forEach(d => {
-                const m = parseInt(d["Mês"]) - 1;
+                const dateData = obterMesAno(d);
+                const m = dateData.m - 1;
                 const val = fixVal(d.TOTAL);
                 if (m >= 0 && m < 12) {
                     if(d.TIPO === 'Entrada') {
