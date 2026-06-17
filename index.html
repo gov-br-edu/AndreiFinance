@@ -3,199 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciamento Financeiro - Técnico</title>
+    <title>Master Control - Financeiro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .entrada-row { border-left: 4px solid #10b981; }
-        .saida-row { border-left: 4px solid #ef4444; }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-slate-50 min-h-screen pb-10">
+<body class="bg-slate-100 min-h-screen">
 
-    <!-- Header -->
-    <header class="bg-indigo-700 text-white p-6 shadow-md mb-8">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold italic">GERENCIAMENTO FINANCEIRO</h1>
-            <span class="bg-indigo-800 px-3 py-1 rounded text-sm">Dashboard Técnico</span>
+    <!-- Menu Superior -->
+    <nav class="bg-indigo-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 flex justify-between items-center h-16">
+            <h1 class="font-black text-xl tracking-tighter italic">FINANCE_PRO</h1>
+            <div class="flex space-x-2">
+                <button onclick="showTab('lancamentos')" class="tab-btn px-4 py-2 rounded-lg bg-indigo-700">Lançamentos</button>
+                <button onclick="showTab('fechamento')" class="tab-btn px-4 py-2 rounded-lg hover:bg-indigo-800 text-indigo-200">Fechamento</button>
+                <button onclick="showTab('dashboard')" class="tab-btn px-4 py-2 rounded-lg hover:bg-indigo-800 text-indigo-200">Dashboard</button>
+            </div>
         </div>
-    </header>
+    </nav>
 
-    <main class="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        <!-- Formulário (Lateral) -->
-        <section class="lg:col-span-1">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 sticky top-4">
-                <h2 class="text-xl font-bold mb-4 text-slate-800">Novo Registro</h2>
-                <form id="formAtendimento" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-600">Tipo de Lançamento</label>
-                        <select id="TIPO" class="w-full border-slate-300 rounded-lg p-2 bg-slate-50 border focus:ring-2 focus:ring-indigo-500 outline-none">
-                            <option value="Entrada">Entrada (Atendimento)</option>
-                            <option value="Saída">Saída (Gasto/Mensalidade)</option>
-                        </select>
-                    </div>
+    <!-- CONTEÚDO -->
+    <main class="max-w-7xl mx-auto p-4 md:p-6">
 
+        <!-- GUIA 1: LANÇAMENTOS -->
+        <section id="tab-lancamentos" class="tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Form aqui (Igual ao anterior, mas com design ajustado) -->
+            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-sm h-fit">
+                <h2 class="font-bold text-lg mb-4">Novo Registro</h2>
+                <form id="formAtendimento" class="space-y-3">
+                    <select id="TIPO" class="w-full border p-2 rounded-lg bg-slate-50">
+                        <option value="Entrada">Entrada (Chamado)</option>
+                        <option value="Saída">Saída (Despesa)</option>
+                    </select>
                     <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-600">Data</label>
-                            <input type="date" id="DIA" class="w-full border rounded-lg p-2 text-sm border-slate-300" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-600">Hora</label>
-                            <input type="text" id="HORA" placeholder="09:00 às 11:00" class="w-full border rounded-lg p-2 text-sm border-slate-300">
-                        </div>
+                        <input type="date" id="DIA" class="border p-2 rounded-lg w-full" required>
+                        <input type="text" id="RAT" placeholder="RAT/OS" class="border p-2 rounded-lg w-full">
                     </div>
-
-                    <input type="text" id="EMPRESA" placeholder="Empresa / Cliente" class="w-full border rounded-lg p-2 border-slate-300">
-                    <input type="text" id="Local" placeholder="Local da Unidade" class="w-full border rounded-lg p-2 border-slate-300">
-                    <input type="text" id="RAT" placeholder="Número RAT / OS" class="w-full border rounded-lg p-2 border-slate-300">
-                    
-                    <textarea id="DESCRICAO" placeholder="Descrição breve do serviço..." rows="3" class="w-full border rounded-lg p-2 border-slate-300 text-sm"></textarea>
-
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-600">Valor R$</label>
-                            <input type="number" step="0.01" id="VALOR" value="0" class="w-full border rounded-lg p-2 border-slate-300 calc-total">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-600">Transp/Extra R$</label>
-                            <input type="number" step="0.01" id="EXTRA" value="0" class="w-full border rounded-lg p-2 border-slate-300 calc-total">
-                        </div>
+                    <input type="text" id="EMPRESA" placeholder="Empresa (Ex: Sonda)" class="border p-2 rounded-lg w-full">
+                    <input type="text" id="Local" placeholder="Unidade/Local" class="border p-2 rounded-lg w-full">
+                    <textarea id="DESCRICAO" placeholder="Descrição" class="border p-2 rounded-lg w-full h-20"></textarea>
+                    <div class="grid grid-cols-2 gap-2 font-bold">
+                        <input type="number" step="0.01" id="VALOR" placeholder="Valor R$" class="border p-2 rounded-lg w-full text-green-600">
+                        <input type="number" step="0.01" id="EXTRA" placeholder="Extra R$" class="border p-2 rounded-lg w-full text-blue-600">
                     </div>
-
-                    <div class="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
-                        <span class="text-sm text-indigo-600 font-bold uppercase">Total Estimado</span>
-                        <p id="displayTotal" class="text-2xl font-black text-indigo-800 text-right">R$ 0,00</p>
-                    </div>
-
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition shadow-lg shadow-indigo-200">
-                        Salvar no Banco
-                    </button>
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold">Salvar Dados</button>
                 </form>
+            </div>
+            <!-- Lista Recente -->
+            <div class="lg:col-span-2 bg-white rounded-xl shadow-sm overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50 border-b">
+                        <tr><th class="p-3 text-left">Data</th><th class="p-3 text-left">Empresa</th><th class="p-3 text-right">Total</th></tr>
+                    </thead>
+                    <tbody id="listaRecente"></tbody>
+                </table>
             </div>
         </section>
 
-        <!-- Tabela (Principal) -->
-        <section class="lg:col-span-2">
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="p-4 bg-slate-50 border-b flex justify-between items-center">
-                    <h2 class="font-bold text-slate-700 uppercase tracking-wider text-sm">Histórico Recente</h2>
-                    <button onclick="carregarDados()" class="text-indigo-600 text-sm hover:underline">Atualizar Lista</button>
+        <!-- GUIA 2: FECHAMENTO -->
+        <section id="tab-fechamento" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm flex flex-wrap items-end gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-500">Filtrar Mês/Ano</label>
+                    <input type="month" id="filtroMes" class="border p-2 rounded-lg">
                 </div>
-                <div class="overflow-x-auto max-h-[700px] overflow-y-auto">
-                    <table class="w-full text-sm text-left">
-                        <thead class="bg-slate-100 text-slate-600 uppercase text-xs sticky top-0">
-                            <tr>
-                                <th class="p-4">Data/Hora</th>
-                                <th class="p-4">Empresa/Local</th>
-                                <th class="p-4">Descrição</th>
-                                <th class="p-4">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody id="listaAtendimentos" class="divide-y divide-slate-100">
-                            <!-- Linhas carregadas aqui -->
-                        </tbody>
-                    </table>
-                </div>
+                <button onclick="gerarFechamento()" class="bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold">Gerar Relatório</button>
+            </div>
+            
+            <div id="cardsFechamento" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Cards de empresa aparecem aqui -->
+            </div>
+        </section>
+
+        <!-- GUIA 3: DASHBOARD -->
+        <section id="tab-dashboard" class="tab-content hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm">
+                <h3 class="font-bold mb-4">Entradas vs Saídas (Anual)</h3>
+                <canvas id="chartFluxo"></canvas>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm">
+                <h3 class="font-bold mb-4">Faturamento por Empresa</h3>
+                <canvas id="chartEmpresas"></canvas>
             </div>
         </section>
 
     </main>
 
     <script>
-        // CONFIGURAÇÃO SUPABASE
         const SB_URL = "https://ctvnkjrpoyaancoxwles.supabase.co";
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0dm5ranJwb3lhYW5jb3h3bGVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2NDA2OTYsImV4cCI6MjA5NzIxNjY5Nn0.SSY-ys7ZC2wqOdprejhYILJUzdXZjWkZ8upocSGqaQ8";
+        const SB_KEY = "SUA_KEY_AQUI"; // Certifique-se que é a mesma key
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-        // CÁLCULO DE TOTAL EM TEMPO REAL
-        const inputsTotal = document.querySelectorAll('.calc-total');
-        inputsTotal.forEach(input => {
-            input.addEventListener('input', () => {
-                const v = parseFloat(document.getElementById('VALOR').value) || 0;
-                const e = parseFloat(document.getElementById('EXTRA').value) || 0;
-                document.getElementById('displayTotal').innerText = `R$ ${(v + e).toFixed(2)}`;
-            });
-        });
-
-        // CARREGAR DADOS DO BANCO
-        async function carregarDados() {
-            const lista = document.getElementById('listaAtendimentos');
-            lista.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-400">Carregando dados...</td></tr>';
-
-            const { data, error } = await supabaseClient
-                .from('atendimentos')
-                .select('*')
-                .order('id', { ascending: false });
-
-            if (error) {
-                console.error(error);
-                return;
-            }
-
-            lista.innerHTML = '';
-            data.forEach(item => {
-                const tipoClasse = item.TIPO === 'Saída' ? 'saida-row text-red-600' : 'entrada-row text-emerald-600';
-                lista.innerHTML += `
-                    <tr class="${item.TIPO === 'Saída' ? 'bg-red-50/30' : 'bg-emerald-50/30'} hover:bg-slate-50 transition">
-                        <td class="p-4 font-medium border-l-4 ${tipoClasse}">
-                            ${item.DIA || '-'}<br>
-                            <span class="text-xs text-slate-400">${item.HORA || ''}</span>
-                        </td>
-                        <td class="p-4">
-                            <span class="font-bold text-slate-700">${item.EMPRESA || 'N/A'}</span><br>
-                            <span class="text-xs text-slate-500">${item.Local || ''}</span>
-                        </td>
-                        <td class="p-4 text-slate-500 max-w-xs truncate" title="${item['DESCRIÇÃO']}">
-                            ${item['DESCRIÇÃO'] || ''}
-                        </td>
-                        <td class="p-4 font-bold">
-                            R$ ${item.TOTAL || '0,00'}
-                        </td>
-                    </tr>
-                `;
-            });
+        // NAVEGAÇÃO DE ABAS
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('bg-indigo-700', 'text-white'));
+            event.currentTarget.classList.add('bg-indigo-700', 'text-white');
+            
+            if(tabId === 'dashboard') renderCharts();
         }
 
-        // SALVAR NOVO REGISTRO
+        // SALVAR NOVO
         document.getElementById('formAtendimento').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const d = document.getElementById('DIA').value;
+            const v = parseFloat(document.getElementById('VALOR').value || 0);
+            const ex = parseFloat(document.getElementById('EXTRA').value || 0);
             
-            const valor = parseFloat(document.getElementById('VALOR').value) || 0;
-            const extra = parseFloat(document.getElementById('EXTRA').value) || 0;
-            const dataInput = document.getElementById('DIA').value; // YYYY-MM-DD
-            
-            const novoRegistro = {
+            const payload = {
                 TIPO: document.getElementById('TIPO').value,
-                DIA: dataInput.split('-').reverse().join('/'), // Converte para DD/MM/YYYY
-                HORA: document.getElementById('HORA').value,
+                DIA: d.split('-').reverse().join('/'),
                 EMPRESA: document.getElementById('EMPRESA').value,
                 Local: document.getElementById('Local').value,
                 RAT: document.getElementById('RAT').value,
                 "DESCRIÇÃO": document.getElementById('DESCRICAO').value,
-                VALOR: valor.toFixed(2),
-                EXTRA: extra.toFixed(2),
-                TOTAL: (valor + extra).toFixed(2),
+                VALOR: v.toFixed(2),
+                EXTRA: ex.toFixed(2),
+                TOTAL: (v + ex).toFixed(2),
                 PAGAMENTO: "PENDENTE",
-                "Mês": new Date(dataInput).getMonth() + 1,
-                "ANO": new Date(dataInput).getFullYear()
+                "Mês": parseInt(d.split('-')[1]),
+                "ANO": parseInt(d.split('-')[0])
             };
 
-            const { error } = await supabaseClient.from('atendimentos').insert([novoRegistro]);
-
-            if (error) {
-                alert("Erro ao salvar: " + error.message);
-            } else {
-                alert("Lançamento realizado com sucesso!");
-                document.getElementById('formAtendimento').reset();
-                document.getElementById('displayTotal').innerText = "R$ 0,00";
-                carregarDados();
-            }
+            await supabaseClient.from('atendimentos').insert([payload]);
+            alert("Salvo!");
+            location.reload();
         });
 
-        // Iniciar carregamento
-        carregarDados();
+        // LÓGICA DE FECHAMENTO
+        async function gerarFechamento() {
+            const filtro = document.getElementById('filtroMes').value; // YYYY-MM
+            if(!filtro) return alert("Escolha o mês");
+
+            const ano = parseInt(filtro.split('-')[0]);
+            const mes = parseInt(filtro.split('-')[1]);
+
+            // Busca atendimentos pendentes e configurações das empresas
+            const { data: chamados } = await supabaseClient.from('atendimentos')
+                .select('*').eq('ANO', ano).eq('Mês', mes).eq('PAGAMENTO', 'PENDENTE');
+            
+            const { data: configs } = await supabaseClient.from('empresas_config').select('*');
+
+            const container = document.getElementById('cardsFechamento');
+            container.innerHTML = "";
+
+            // Agrupa por empresa
+            const agrupado = {};
+            chamados.forEach(c => {
+                if(!agrupado[c.EMPRESA]) agrupado[c.EMPRESA] = { total: 0, qtd: 0 };
+                agrupado[c.EMPRESA].total += parseFloat(c.TOTAL.replace(',','.'));
+                agrupado[c.EMPRESA].qtd++;
+            });
+
+            for (let emp in agrupado) {
+                const conf = configs.find(x => x.nome_empresa === emp) || {};
+                container.innerHTML += `
+                    <div class="bg-white p-5 rounded-xl border-l-4 border-amber-500 shadow-sm">
+                        <div class="flex justify-between border-b pb-2 mb-2">
+                            <h3 class="font-black text-slate-700">${emp}</h3>
+                            <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs font-bold">PENDENTE</span>
+                        </div>
+                        <div class="grid grid-cols-2 text-sm gap-2">
+                            <p><b>Chamados:</b> ${agrupado[emp].qtd}</p>
+                            <p class="text-right text-lg text-indigo-700"><b>R$ ${agrupado[emp].total.toFixed(2)}</b></p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t text-xs text-slate-500 space-y-1">
+                            <p>📧 <b>Email:</b> ${conf.email_fechamento || 'Não cadastrado'}</p>
+                            <p>⏳ <b>Prazo:</b> ${conf.prazo_envio || '-'}</p>
+                            <p>📄 <b>NF:</b> ${conf.exige_nf ? 'Sim, obrigatório' : 'Não necessária'}</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // DASHBOARD COM CHART.JS
+        async function renderCharts() {
+            const { data } = await supabaseClient.from('atendimentos').select('*');
+            
+            // Lógica simples para Entradas vs Saídas
+            const mesesLabels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+            const entradas = new Array(12).fill(0);
+            const saidas = new Array(12).fill(0);
+
+            data.forEach(d => {
+                const m = d.Mês - 1;
+                const valor = parseFloat(d.TOTAL.replace(',','.'));
+                if(d.TIPO === 'Entrada') entradas[m] += valor;
+                else saidas[m] += valor;
+            });
+
+            new Chart(document.getElementById('chartFluxo'), {
+                type: 'bar',
+                data: {
+                    labels: mesesLabels,
+                    datasets: [
+                        { label: 'Entradas', data: entradas, backgroundColor: '#10b981' },
+                        { label: 'Saídas', data: saidas, backgroundColor: '#ef4444' }
+                    ]
+                }
+            });
+        }
+
+        // Início
+        carregarDadosIniciais();
+        async function carregarDadosIniciais() {
+            const { data } = await supabaseClient.from('atendimentos').select('*').limit(10).order('id', {ascending:false});
+            const lista = document.getElementById('listaRecente');
+            data.forEach(d => {
+                lista.innerHTML += `<tr class="border-b"><td class="p-3 text-xs">${d.DIA}</td><td class="p-3">${d.EMPRESA}</td><td class="p-3 text-right font-bold">R$ ${d.TOTAL}</td></tr>`;
+            });
+        }
     </script>
 </body>
 </html>
