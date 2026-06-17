@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance Pro - Liquid Glass Edition</title>
+    <title>Finance Pro - Metallic Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -24,18 +24,25 @@
             position: relative;
         }
 
-        /* Marca d'água no fundo */
+        /* Marca d'água ajustada */
         body::before {
             content: "";
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -40%); /* Centralizado levemente abaixo do topo */
+            width: 100%; height: 100%;
             background-image: url("1781706422626.png");
             background-repeat: no-repeat;
             background-position: center;
-            background-size: 40%;
-            opacity: 0.05; /* Transparência alta para textura */
+            background-size: 35%; /* Desktop */
+            background-attachment: fixed;
+            opacity: 0.05;
             z-index: -2;
             pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            body::before { background-size: 80% auto; transform: translate(-50%, -35%); }
         }
 
         .blob {
@@ -62,28 +69,25 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Estilos de Borda da Tabela (Lançamentos) */
         .status-pago { border-left: 6px solid #10b981; }
-        .status-naopago-tab { border-left: 6px solid #f97316; } /* Laranja na tabela */
+        .status-naopago-tab { border-left: 6px solid #f97316; }
         .status-saida { border-left: 6px solid #ef4444; }
 
-        /* Estilo do Card de Fechamento (Pendentes) */
-        .card-pendente-moldura { 
-            border: 2px solid #ef4444 !important; /* Moldura vermelha total */
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
-        }
+        .card-pendente-moldura { border: 2px solid #ef4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
 
         .table-container { max-height: 60vh; overflow-y: auto; }
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.5); border-radius: 10px; }
 
-        #modalDetalhes { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(15px); }
+        #modalDetalhes { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); }
 
         input, textarea, select {
             background: rgba(0, 0, 0, 0.3) !important;
-            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
             color: white !important;
         }
+
+        .edit-input { width: 100%; background: rgba(255,255,255,0.05); border-radius: 8px; padding: 4px 8px; border: 1px solid rgba(168,85,247,0.3); font-weight: bold; }
     </style>
 </head>
 <body>
@@ -127,26 +131,23 @@
                             <input type="number" step="0.01" id="ALIM" placeholder="Alim">
                             <input type="number" step="0.01" id="TRANSP" placeholder="Transp">
                         </div>
-                        <button type="submit" id="btnSalvar" class="w-full btn-glass-purple text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-[9px]">GRAVAR DADOS</button>
+                        <button type="submit" id="btnSalvar" class="w-full btn-glass-purple text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[9px]">GRAVAR DADOS</button>
                     </form>
                 </div>
             </div>
 
             <div class="lg:col-span-3 h-fit flex flex-col gap-4">
-                <!-- BARRA DE PESQUISA -->
                 <div class="glass p-4 rounded-2xl flex items-center gap-4">
                     <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    <input type="text" id="inputBusca" onkeyup="filtrarLancamentos()" placeholder="Pesquisar por data, empresa, RAT, local ou valor..." class="w-full bg-transparent !border-none outline-none text-sm placeholder-slate-500">
+                    <input type="text" id="inputBusca" onkeyup="filtrarLancamentos()" placeholder="Pesquisar por data, empresa, RAT, local, intermédio..." class="w-full bg-transparent !border-none outline-none text-sm placeholder-slate-500">
                 </div>
-
-                <!-- TABELA -->
                 <div class="glass rounded-3xl overflow-hidden border border-white/10">
                     <div class="table-container">
                         <table class="w-full text-left text-xs relative">
                             <thead class="bg-black/40 text-purple-400 font-bold uppercase sticky top-0 z-10 backdrop-blur-md">
                                 <tr><th class="p-5">Data / Hora</th><th class="p-5">Empresa / RAT</th><th class="p-5 text-right font-black">Total</th></tr>
                             </thead>
-                            <tbody id="listaLancamentos" class="divide-y divide-white/5"></tbody>
+                            <tbody id="listaLancamentos" class="divide-y divide-white/5 text-slate-300"></tbody>
                         </table>
                     </div>
                 </div>
@@ -163,14 +164,23 @@
         </section>
     </main>
 
-    <!-- MODAL -->
+    <!-- MODAL DETALHES COM EDIÇÃO -->
     <div id="modalDetalhes" class="flex items-center justify-center p-4">
         <div class="glass w-full max-w-lg rounded-3xl overflow-hidden border border-purple-500/30">
             <div id="modalHeader" class="p-6 flex justify-between items-center text-white">
                 <span id="modalStatusText" class="font-black uppercase text-[10px] tracking-widest">DETALHES</span>
-                <button onclick="fecharModal()" class="text-3xl font-light">&times;</button>
+                <div class="flex gap-4">
+                    <button id="btnEditToggle" onclick="toggleEditMode()" class="text-purple-400 hover:text-white transition-colors">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path></svg>
+                    </button>
+                    <button onclick="fecharModal()" class="text-3xl font-light">&times;</button>
+                </div>
             </div>
             <div id="modalBody" class="p-8 space-y-6"></div>
+            <div id="modalFooter" class="p-6 hidden flex justify-end gap-3 border-t border-white/5">
+                <button onclick="toggleEditMode()" class="px-4 py-2 text-xs font-bold text-slate-400">Cancelar</button>
+                <button onclick="salvarAlteracoes()" class="px-6 py-2 bg-emerald-600 rounded-xl text-xs font-black uppercase text-white shadow-lg">Confirmar Alterações</button>
+            </div>
         </div>
     </div>
 
@@ -181,6 +191,8 @@
 
         let tipoAtual = 'Entrada';
         let dadosCompletos = [];
+        let itemSendoEditado = null;
+        let editMode = false;
         const mesesNomes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
         function setTipo(t) {
@@ -214,22 +226,9 @@
             return parseFloat(str) || 0;
         }
 
-        function parseDateIntelligent(item) {
-            let m = parseInt(item["Mês"]);
-            let a = parseInt(item.ANO);
-            if (isNaN(m) || isNaN(a) || m === 0) {
-                const diaStr = (item.DIA || "").toString();
-                const separator = diaStr.includes('-') ? '-' : '/';
-                const parts = diaStr.split(separator);
-                if (parts[0].length === 4) { a = parseInt(parts[0]); m = parseInt(parts[1]); }
-                else { a = parseInt(parts[2]); m = parseInt(parts[1]); }
-            }
-            return { m: m || 1, a: a || 2024 };
-        }
-
         async function carregarLancamentos() {
             const lista = document.getElementById('listaLancamentos');
-            lista.innerHTML = '<tr><td colspan="3" class="p-10 text-center font-black animate-pulse text-purple-500 uppercase tracking-widest">Sincronizando...</td></tr>';
+            lista.innerHTML = '<tr><td colspan="3" class="p-10 text-center font-black animate-pulse text-purple-500 uppercase tracking-widest text-[9px]">Sincronizando...</td></tr>';
             const { data, error } = await supabaseClient.from('atendimentos').select('*').order('id', { ascending: false });
             if(error) return;
             dadosCompletos = data;
@@ -243,6 +242,7 @@
                 (d.EMPRESA || "").toLowerCase().includes(termo) ||
                 (d.RAT || "").toLowerCase().includes(termo) ||
                 (d.Local || "").toLowerCase().includes(termo) ||
+                (d["INTERMÉDIO"] || d.INTERMEDIO || "").toLowerCase().includes(termo) ||
                 (d.TOTAL || "").toString().toLowerCase().includes(termo)
             );
             renderizarTabela(filtrados);
@@ -251,30 +251,112 @@
         function renderizarTabela(dados) {
             const lista = document.getElementById('listaLancamentos');
             lista.innerHTML = '';
-            dados.forEach((d, i) => {
+            dados.forEach((d) => {
                 let status = (d.TIPO === 'Saída') ? "status-saida" : (d.PAGAMENTO === 'PAGO' ? "status-pago" : "status-naopago-tab");
                 lista.innerHTML += `
                     <tr onclick="abrirDetalhesDeFila(${d.id})" class="hover:bg-purple-500/5 cursor-pointer border-b border-white/5 transition-colors">
-                        <td class="p-5 ${status}"><div class="font-bold text-slate-100">${d.DIA}</div><div class="text-[9px] text-purple-400 font-bold">${d.HORA || ''}</div></td>
-                        <td class="p-5"><div class="font-bold text-slate-200 uppercase">${d.EMPRESA || '-'}</div><div class="text-[9px] text-purple-700 font-bold italic">${d.RAT || ''}</div></td>
+                        <td class="p-5 ${status}"><div class="font-bold text-slate-100">${d.DIA}</div><div class="text-[9px] text-purple-400 font-bold uppercase">${d.HORA || ''}</div></td>
+                        <td class="p-5"><div class="font-bold text-slate-200 uppercase leading-tight">${d.EMPRESA || '-'}</div><div class="text-[9px] text-purple-700 font-bold italic">${d.RAT || ''}</div></td>
                         <td class="p-5 text-right font-black ${d.TIPO === 'Saída' ? 'text-red-400' : 'text-emerald-400'}">R$ ${d.TOTAL || '0.00'}</td>
                     </tr>`;
             });
         }
 
+        async function abrirDetalhesDeFila(id) {
+            itemSendoEditado = dadosCompletos.find(x => x.id === id);
+            editMode = false;
+            document.getElementById('modalFooter').classList.add('hidden');
+            renderizarModalBody();
+            document.getElementById('modalDetalhes').style.display = "flex";
+        }
+
+        function renderizarModalBody() {
+            const item = itemSendoEditado;
+            const head = document.getElementById('modalHeader');
+            const body = document.getElementById('modalBody');
+            let bg = item.TIPO === 'Saída' ? 'bg-red-500/60' : (item.PAGAMENTO === 'PAGO' ? 'bg-emerald-600/60' : 'bg-amber-500/60');
+            head.className = `p-6 flex justify-between items-center text-white ${bg} backdrop-blur-md`;
+
+            body.innerHTML = `
+                <div class="grid grid-cols-2 gap-4 border-b border-white/5 pb-4 uppercase">
+                    <div>
+                        <label class="text-[9px] font-black text-purple-400">EMPRESA</label>
+                        ${editMode ? `<input id="edit_empresa" class="edit-input text-sm" value="${item.EMPRESA || ''}">` : `<p class="font-black text-white text-base leading-tight">${item.EMPRESA || '-'}</p>`}
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-purple-400">RAT</label>
+                        ${editMode ? `<input id="edit_rat" class="edit-input text-sm" value="${item.RAT || ''}">` : `<p class="font-black text-purple-500 italic text-base italic leading-tight">${item.RAT || '-'}</p>`}
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-b border-white/5 pb-4 uppercase">
+                    <div>
+                        <label class="text-[9px] font-black text-purple-400">Intermédio</label>
+                        ${editMode ? `<input id="edit_intermedio" class="edit-input text-xs" value="${item["INTERMÉDIO"] || item.INTERMEDIO || ''}">` : `<p class="font-bold text-slate-200">${item["INTERMÉDIO"] || item.INTERMEDIO || '-'}</p>`}
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-purple-400">Local</label>
+                        ${editMode ? `<input id="edit_local" class="edit-input text-xs" value="${item.Local || ''}">` : `<p class="font-bold text-slate-200">${item.Local || '-'}</p>`}
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-purple-400">Descrição Técnica</label>
+                    ${editMode ? `<textarea id="edit_desc" class="edit-input text-xs h-24">${item["DESCRIÇÃO"] || ''}</textarea>` : `<div class="bg-black/30 p-4 rounded-xl italic text-slate-400 text-[10px] leading-relaxed border border-white/5">"${item["DESCRIÇÃO"] || '---'}"</div>`}
+                </div>
+                <div class="grid grid-cols-4 gap-2 text-center text-[8px] font-black uppercase">
+                    <div class="bg-white/5 p-2 rounded-xl text-slate-400">Base<br>${editMode ? `<input id="edit_val" class="edit-input text-center text-[10px]" value="${item.VALOR || 0}">` : `<span class="text-white text-xs">${item.VALOR || 0}</span>`}</div>
+                    <div class="bg-white/5 p-2 rounded-xl text-slate-400">Extra<br>${editMode ? `<input id="edit_extra" class="edit-input text-center text-[10px]" value="${item.EXTRA || 0}">` : `<span class="text-white text-xs">${item.EXTRA || 0}</span>`}</div>
+                    <div class="bg-white/5 p-2 rounded-xl text-slate-400">Alim<br>${editMode ? `<input id="edit_alim" class="edit-input text-center text-[10px]" value="${item.ALIM || 0}">` : `<span class="text-white text-xs">${item.ALIM || 0}</span>`}</div>
+                    <div class="bg-white/5 p-2 rounded-xl text-slate-400">Transp<br>${editMode ? `<input id="edit_transp" class="edit-input text-center text-[10px]" value="${item.TRANSP || 0}">` : `<span class="text-white text-xs">${item.TRANSP || 0}</span>`}</div>
+                </div>
+                <div class="btn-glass-purple p-6 rounded-3xl flex justify-between items-center text-white shadow-2xl">
+                    <span class="text-[10px] font-black uppercase opacity-60 italic tracking-widest">Total Líquido</span>
+                    <span class="text-2xl font-black italic tracking-tighter">R$ ${item.TOTAL || '0.00'}</span>
+                </div>`;
+        }
+
+        function toggleEditMode() {
+            editMode = !editMode;
+            document.getElementById('modalFooter').classList.toggle('hidden', !editMode);
+            renderizarModalBody();
+        }
+
+        async function salvarAlteracoes() {
+            const v = fixVal(document.getElementById('edit_val').value);
+            const ex = fixVal(document.getElementById('edit_extra').value);
+            const al = fixVal(document.getElementById('edit_alim').value);
+            const tr = fixVal(document.getElementById('edit_transp').value);
+            const novoTotal = (v + ex + al + tr).toFixed(2);
+
+            const updates = {
+                EMPRESA: document.getElementById('edit_empresa').value,
+                RAT: document.getElementById('edit_rat').value,
+                "INTERMÉDIO": document.getElementById('edit_intermedio').value,
+                Local: document.getElementById('edit_local').value,
+                "DESCRIÇÃO": document.getElementById('edit_desc').value,
+                VALOR: v.toFixed(2),
+                EXTRA: ex.toFixed(2),
+                ALIM: al.toFixed(2),
+                TRANSP: tr.toFixed(2),
+                TOTAL: novoTotal
+            };
+
+            const { error } = await supabaseClient.from('atendimentos').update(updates).eq('id', itemSendoEditado.id);
+            if(error) alert("Erro!"); else location.reload();
+        }
+
+        function fecharModal() { document.getElementById('modalDetalhes').style.display = "none"; editMode = false; }
+
+        // Mantidas as lógicas de fechamento e gráficos do código anterior
         async function carregarFechamentoFinal() {
             const container = document.getElementById('tab-fechamento');
-            container.innerHTML = '<div class="p-20 text-center font-black uppercase text-purple-500 animate-pulse tracking-widest italic">Processando Fechamentos...</div>';
-            
+            container.innerHTML = '<div class="p-20 text-center font-black uppercase text-purple-500 animate-pulse tracking-widest italic text-[9px]">Calculando Liquid Assets...</div>';
             const { data: lancamentos } = await supabaseClient.from('atendimentos').select('*').eq('TIPO', 'Entrada');
             const { data: configs } = await supabaseClient.from('empresas_config').select('*');
-
             const grupos = {};
             lancamentos.forEach(l => {
                 const dt = parseDateIntelligent(l);
                 const chave = `${dt.a} - ${mesesNomes[dt.m - 1]}`;
                 if(!grupos[chave]) grupos[chave] = { pendentes: {}, pagos: [], totalMesPendente: 0, totalMesPago: 0 };
-                
                 const valorLimpo = fixVal(l.TOTAL);
                 if(l.PAGAMENTO !== 'PAGO') {
                     const emp = l.EMPRESA || 'Outros';
@@ -283,20 +365,14 @@
                     grupos[chave].pendentes[emp].chamados.push(l);
                     grupos[chave].pendentes[emp].ids.push(l.id);
                     grupos[chave].totalMesPendente += valorLimpo;
-                } else {
-                    grupos[chave].pagos.push(l);
-                    grupos[chave].totalMesPago += valorLimpo;
-                }
+                } else { grupos[chave].pagos.push(l); grupos[chave].totalMesPago += valorLimpo; }
             });
-
             container.innerHTML = '<h2 class="text-xl font-black text-purple-400 uppercase italic border-b border-white/10 pb-4">Fechamentos Inteligentes</h2>';
-            
             const chavesOrdenadas = Object.keys(grupos).sort((a, b) => {
                 const [yA, mA] = a.split(' - ');
                 const [yB, mB] = b.split(' - ');
                 return (parseInt(yB) * 100 + mesesNomes.indexOf(mB)) - (parseInt(yA) * 100 + mesesNomes.indexOf(mA));
             });
-
             chavesOrdenadas.forEach(mesKey => {
                 const g = grupos[mesKey];
                 let htmlMes = `
@@ -304,166 +380,60 @@
                     <div class="glass p-6 rounded-3xl border-l-8 border-purple-600 flex flex-col md:flex-row justify-between items-center shadow-2xl gap-4">
                         <h3 class="text-xs md:text-sm font-black text-slate-100 uppercase tracking-widest">${mesKey}</h3>
                         <div class="flex gap-8 text-center md:text-right">
-                            <div>
-                                <span class="text-[9px] font-bold text-slate-400 uppercase block">Recebido no Mês</span>
-                                <span class="text-lg md:text-2xl font-black text-emerald-400 italic">R$ ${g.totalMesPago.toFixed(2)}</span>
-                            </div>
-                            <div>
-                                <span class="text-[9px] font-bold text-slate-400 uppercase block">Total Pendente</span>
-                                <span class="text-lg md:text-2xl font-black text-purple-400 italic">R$ ${g.totalMesPendente.toFixed(2)}</span>
-                            </div>
+                            <div><span class="text-[9px] font-bold text-slate-400 uppercase block">Recebido</span><span class="text-lg md:text-2xl font-black text-emerald-400 italic">R$ ${g.totalMesPago.toFixed(2)}</span></div>
+                            <div><span class="text-[9px] font-bold text-slate-400 uppercase block">Pendente</span><span class="text-lg md:text-2xl font-black text-purple-400 italic">R$ ${g.totalMesPendente.toFixed(2)}</span></div>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">`;
-                
                 Object.keys(g.pendentes).forEach(emp => {
                     const info = g.pendentes[emp];
                     const conf = configs?.find(x => x.nome_empresa === emp);
                     htmlMes += `
                         <div class="glass p-6 rounded-3xl card-pendente-moldura shadow-xl flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-black text-white text-[10px] uppercase mb-4 border-b border-white/10 pb-2">${emp}</h4>
-                                <div class="space-y-2 mb-6">
-                                    ${info.chamados.map(i => `
-                                        <div class="flex justify-between items-start text-[9px] border-b border-white/5 pb-1">
-                                            <div class="text-slate-400 font-bold">${i.DIA} <span class="text-[8px] opacity-40 ml-1">(${i.Local || '-'})</span></div>
-                                            <div class="font-black text-white italic">R$ ${i.TOTAL}</div>
-                                        </div>`).join('')}
-                                </div>
+                            <div><h4 class="font-black text-white text-[10px] uppercase mb-4 border-b border-white/10 pb-2">${emp}</h4>
+                                <div class="space-y-2 mb-6">${info.chamados.map(i => `<div class="flex justify-between items-start text-[9px] border-b border-white/5 pb-1"><div class="text-slate-400 font-bold">${i.DIA} <span class="text-[8px] opacity-40 ml-1">(${i.Local || '-'})</span></div><div class="font-black text-white italic text-[11px]">R$ ${i.TOTAL}</div></div>`).join('')}</div>
                             </div>
                             <div class="text-center">
-                                <div class="flex justify-between items-center mb-4 px-2">
-                                    <span class="text-[9px] font-black text-red-500 uppercase">A Receber:</span>
-                                    <span class="text-xl font-black text-purple-400 italic">R$ ${info.total.toFixed(2)}</span>
-                                </div>
-                                <button onclick="marcarComoPago([${info.ids}])" class="mx-auto bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 py-2 px-6 rounded-xl text-[9px] font-black uppercase hover:bg-emerald-500 hover:text-white transition-all mb-4">
-                                    Recebi o Pagamento
-                                </button>
-                                <div class="text-[8px] text-slate-500 bg-black/40 p-3 rounded-2xl border border-white/5 space-y-1 text-left">
-                                    <p class="flex justify-between"><span>E-MAIL:</span> <b class="text-white">${conf?.email_fechamento || '---'}</b></p>
-                                    <p class="flex justify-between"><span>PRAZO:</span> <b class="text-white">${conf?.prazo_envio || '---'}</b></p>
-                                </div>
-                            </div>
-                        </div>`;
+                                <div class="flex justify-between items-center mb-4 px-2"><span class="text-[9px] font-black text-red-500 uppercase">A Receber:</span><span class="text-xl font-black text-purple-400 italic">R$ ${info.total.toFixed(2)}</span></div>
+                                <button onclick="marcarComoPago([${info.ids}])" class="mx-auto bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 py-2 px-6 rounded-xl text-[9px] font-black uppercase hover:bg-emerald-500 hover:text-white transition-all mb-4 text-[9px]">Recebi o Pagamento</button>
+                                <div class="text-[8px] text-slate-500 bg-black/40 p-3 rounded-2xl border border-white/5 space-y-1 text-left"><p class="flex justify-between uppercase"><span>📧 Email:</span> <span>${conf?.email_fechamento || '---'}</span></p><p class="flex justify-between uppercase"><span>⏳ Prazo:</span> <span>${conf?.prazo_envio || '---'}</span></p></div>
+                            </div></div>`;
                 });
-                
                 htmlMes += `</div>`;
                 if(g.pagos.length > 0) {
                     htmlMes += `<div class="bg-emerald-500/5 rounded-3xl p-6 border border-emerald-500/10">
                         <div class="flex justify-between items-center mb-4">
                             <h5 class="text-[9px] font-black text-emerald-500 uppercase tracking-widest italic underline">✔ HISTÓRICO DE RECEBIMENTOS (${mesKey.split(' - ')[1]})</h5>
-                            <span class="text-[10px] font-black text-emerald-600 uppercase italic">Total Pago: R$ ${g.totalMesPago.toFixed(2)}</span>
+                            <span class="text-[10px] font-black text-emerald-600 uppercase italic">Pago no mês: R$ ${g.totalMesPago.toFixed(2)}</span>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            ${g.pagos.map(p => `
-                                <div class="flex justify-between items-center text-[9px] border-b border-white/5 pb-1">
-                                    <span class="font-bold text-slate-500">${p.EMPRESA}</span>
-                                    <span class="font-black text-emerald-400 italic text-xs">R$ ${p.TOTAL}</span>
-                                </div>`).join('')}
-                        </div></div>`;
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">${g.pagos.map(p => `<div class="flex justify-between items-center text-[9px] border-b border-white/5 pb-1"><span class="font-bold text-slate-500 uppercase">${p.EMPRESA}</span><span class="font-black text-emerald-400 italic text-xs">R$ ${p.TOTAL}</span></div>`).join('')}</div></div>`;
                 }
                 container.innerHTML += htmlMes + `</div>`;
             });
         }
 
-        async function marcarComoPago(ids) {
-            if (!confirm("Confirmar o recebimento de todos os lançamentos desta empresa neste mês?")) return;
-            const { error } = await supabaseClient.from('atendimentos').update({ PAGAMENTO: 'PAGO' }).in('id', ids);
-            if (error) alert("Erro!");
-            else carregarFechamentoFinal();
-        }
-
-        async function abrirDetalhesDeFila(id) {
-            const item = dadosCompletos.find(x => x.id === id);
-            const modal = document.getElementById('modalDetalhes');
-            const head = document.getElementById('modalHeader');
-            const body = document.getElementById('modalBody');
-            let bg = item.TIPO === 'Saída' ? 'bg-red-500/60' : (item.PAGAMENTO === 'PAGO' ? 'bg-emerald-600/60' : 'bg-amber-500/60');
-            head.className = `p-6 flex justify-between items-center text-white ${bg} backdrop-blur-md`;
-            body.innerHTML = `
-                <div class="grid grid-cols-2 gap-4 border-b border-white/5 pb-4 uppercase">
-                    <div><label class="text-[9px] font-black text-purple-400">EMPRESA</label><p class="font-black text-white text-lg leading-tight">${item.EMPRESA || '-'}</p></div>
-                    <div><label class="text-[9px] font-black text-purple-400">RAT</label><p class="font-black text-purple-500 italic text-lg tracking-widest leading-tight">${item.RAT || '-'}</p></div>
-                </div>
-                <div class="grid grid-cols-2 gap-4 border-b border-white/5 pb-4 uppercase">
-                    <div><label class="text-[9px] font-black text-purple-400">Intermédio</label><p class="font-bold text-slate-200">${item["INTERMÉDIO"] || item.INTERMEDIO || '-'}</p></div>
-                    <div><label class="text-[9px] font-black text-purple-400">Local</label><p class="font-bold text-slate-200">${item.Local || '-'}</p></div>
-                </div>
-                <div class="bg-black/30 p-4 rounded-2xl italic text-slate-400 text-[10px] leading-relaxed border border-white/5">"${item["DESCRIÇÃO"] || '---'}"</div>
-                <div class="grid grid-cols-4 gap-2 text-center text-[8px] font-black uppercase">
-                    <div class="bg-white/5 p-2 rounded-xl text-slate-400">Base<br><span class="text-white text-xs">${item.VALOR || 0}</span></div>
-                    <div class="bg-white/5 p-2 rounded-xl text-slate-400">Extra<br><span class="text-white text-xs">${item.EXTRA || 0}</span></div>
-                    <div class="bg-white/5 p-2 rounded-xl text-slate-400">Alim<br><span class="text-white text-xs">${item.ALIM || 0}</span></div>
-                    <div class="bg-white/5 p-2 rounded-xl text-slate-400">Transp<br><span class="text-white text-xs">${item.TRANSP || 0}</span></div>
-                </div>
-                <div class="btn-glass-purple p-6 rounded-3xl flex justify-between items-center text-white shadow-2xl">
-                    <span class="text-[10px] font-black uppercase opacity-60 italic tracking-widest">Total Líquido</span>
-                    <span class="text-2xl font-black italic tracking-tighter">R$ ${item.TOTAL || '0.00'}</span>
-                </div>`;
-            modal.style.display = "flex";
-        }
-
-        function fecharModal() { document.getElementById('modalDetalhes').style.display = "none"; }
+        async function marcarComoPago(ids) { if (!confirm("Confirmar recebimento?")) return; await supabaseClient.from('atendimentos').update({ PAGAMENTO: 'PAGO' }).in('id', ids); location.reload(); }
 
         document.getElementById('formAtendimento').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('btnSalvar');
-            btn.disabled = true; btn.innerText = "Sincronizando...";
-            const dataIn = document.getElementById('DIA').value; 
-            const parts = dataIn.split('-');
+            const btn = document.getElementById('btnSalvar'); btn.disabled = true; btn.innerText = "Sincronizando...";
+            const dataIn = document.getElementById('DIA').value; const parts = dataIn.split('-');
             const total = (fixVal(document.getElementById('VALOR').value) + fixVal(document.getElementById('EXTRA').value) + fixVal(document.getElementById('ALIM').value) + fixVal(document.getElementById('TRANSP').value)).toFixed(2);
             const payload = {
-                TIPO: tipoAtual, DIA: `${parts[2]}/${parts[1]}/${parts[0]}`,
-                HORA: document.getElementById('HORA').value, EMPRESA: document.getElementById('EMPRESA').value,
-                "INTERMÉDIO": document.getElementById('INTERMEDIO').value, Local: document.getElementById('Local').value,
-                RAT: document.getElementById('RAT').value, "DESCRIÇÃO": document.getElementById('DESCRICAO').value,
-                VALOR: parseFloat(document.getElementById('VALOR').value || 0).toFixed(2),
-                EXTRA: parseFloat(document.getElementById('EXTRA').value || 0).toFixed(2),
-                ALIM: parseFloat(document.getElementById('ALIM').value || 0).toFixed(2),
-                TRANSP: parseFloat(document.getElementById('TRANSP').value || 0).toFixed(2),
-                TOTAL: total, PAGAMENTO: tipoAtual === 'Saída' ? 'SAÍDA' : 'NÃO PAGO',
-                "Mês": parseInt(parts[1]), "ANO": parseInt(parts[0])
+                TIPO: tipoAtual, DIA: `${parts[2]}/${parts[1]}/${parts[0]}`, HORA: document.getElementById('HORA').value, EMPRESA: document.getElementById('EMPRESA').value, "INTERMÉDIO": document.getElementById('INTERMEDIO').value, Local: document.getElementById('Local').value, RAT: document.getElementById('RAT').value, "DESCRIÇÃO": document.getElementById('DESCRICAO').value,
+                VALOR: parseFloat(document.getElementById('VALOR').value || 0).toFixed(2), EXTRA: parseFloat(document.getElementById('EXTRA').value || 0).toFixed(2), ALIM: parseFloat(document.getElementById('ALIM').value || 0).toFixed(2), TRANSP: parseFloat(document.getElementById('TRANSP').value || 0).toFixed(2),
+                TOTAL: total, PAGAMENTO: tipoAtual === 'Saída' ? 'SAÍDA' : 'NÃO PAGO', "Mês": parseInt(parts[1]), "ANO": parseInt(parts[0])
             };
-            await supabaseClient.from('atendimentos').insert([payload]);
-            location.reload();
+            await supabaseClient.from('atendimentos').insert([payload]); location.reload();
         });
 
         async function renderCharts() {
-            const { data } = await supabaseClient.from('atendimentos').select('*');
-            if(!data) return;
-            const entradas = new Array(12).fill(0);
-            const saidas = new Array(12).fill(0);
-            const empresasMap = {};
-            data.forEach(d => {
-                const dt = parseDateIntelligent(d);
-                const m = dt.m - 1;
-                const val = fixVal(d.TOTAL);
-                if (m >= 0 && m < 12) {
-                    if(d.TIPO === 'Entrada') {
-                        entradas[m] += val;
-                        if(d.EMPRESA) empresasMap[d.EMPRESA] = (empresasMap[d.EMPRESA] || 0) + val;
-                    } else { saidas[m] += val; }
-                }
-            });
-            Chart.defaults.color = '#94a3b8';
-            new Chart(document.getElementById('chartFluxo'), {
-                type: 'line',
-                data: {
-                    labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
-                    datasets: [
-                        { label: 'Ganhos', data: entradas, borderColor: '#10b981', tension: 0.4, fill: true, backgroundColor: 'rgba(16, 185, 129, 0.1)' },
-                        { label: 'Gastos', data: saidas, borderColor: '#ef4444', tension: 0.4, fill: true, backgroundColor: 'rgba(239, 68, 68, 0.1)' }
-                    ]
-                }
-            });
+            const { data } = await supabaseClient.from('atendimentos').select('*'); if(!data) return;
+            const entradas = new Array(12).fill(0); const saidas = new Array(12).fill(0); const empresasMap = {};
+            data.forEach(d => { const dt = parseDateIntelligent(d); const m = dt.m - 1; const val = fixVal(d.TOTAL); if (m >= 0 && m < 12) { if(d.TIPO === 'Entrada') { entradas[m] += val; if(d.EMPRESA) empresasMap[d.EMPRESA] = (empresasMap[d.EMPRESA] || 0) + val; } else { saidas[m] += val; } } });
+            new Chart(document.getElementById('chartFluxo'), { type: 'line', data: { labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"], datasets: [{ label: 'Ganhos', data: entradas, borderColor: '#10b981', tension: 0.4, fill: true, backgroundColor: 'rgba(16, 185, 129, 0.1)' }, { label: 'Gastos', data: saidas, borderColor: '#ef4444', tension: 0.4, fill: true, backgroundColor: 'rgba(239, 68, 68, 0.1)' }] } });
             const topEmpresas = Object.entries(empresasMap).sort((a,b) => b[1]-a[1]).slice(0, 5);
-            new Chart(document.getElementById('chartEmpresas'), {
-                type: 'doughnut',
-                data: {
-                    labels: topEmpresas.map(x => x[0]),
-                    datasets: [{ data: topEmpresas.map(x => x[1]), backgroundColor: ['#a855f7', '#10b981', '#f59e0b', '#ef4444', '#3b82f6'], borderWidth: 0 }]
-                }
-            });
+            new Chart(document.getElementById('chartEmpresas'), { type: 'doughnut', data: { labels: topEmpresas.map(x => x[0]), datasets: [{ data: topEmpresas.map(x => x[1]), backgroundColor: ['#a855f7', '#10b981', '#f59e0b', '#ef4444', '#3b82f6'], borderWidth: 0 }] } });
         }
         carregarLancamentos();
     </script>
