@@ -3,59 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance Pro - Metallic Edition</title>
+    <title>Finance Pro - Liquid Glass Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --roxo: #a855f7; --roxo-dark: #6b21a8; --fundo: #0f172a; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+
+        :root {
+            --purple-glass: rgba(168, 85, 247, 0.15);
+            --border-glass: rgba(255, 255, 255, 0.1);
+        }
 
         body {
-            background-color: var(--fundo);
-            background-image: url("https://www.transparenttextures.com/patterns/carbon-fibre.png");
-            color: #e2e8f0;
+            background: #020617;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #f1f5f9;
+            min-height: 100 screen;
             overflow-x: hidden;
         }
 
-        .card-metalico {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(168, 85, 247, 0.2);
-            border-radius: 1.25rem;
+        /* Background Liquid Glass Blobs */
+        .blob {
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+            filter: blur(80px);
+            z-index: -1;
+            border-radius: 50%;
         }
 
-        .btn-roxo {
-            background: linear-gradient(135deg, var(--roxo), var(--roxo-dark));
-            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
-            transition: all 0.3s ease;
+        .glass {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
         }
 
-        .status-pago { border-left: 8px solid #10b981 !important; }
-        .status-naopago { border-left: 8px solid #facc15 !important; background: rgba(250, 204, 21, 0.05) !important; }
-        .status-saida { border-left: 8px solid #ef4444 !important; }
+        .btn-glass-purple {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.8), rgba(107, 33, 168, 0.8));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-        .table-container { max-height: 72vh; overflow-y: auto; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: var(--roxo); border-radius: 10px; }
+        .btn-glass-purple:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+        }
 
-        #modalDetalhes { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); }
+        .status-pago { border-left: 6px solid #10b981; }
+        .status-naopago { border-left: 6px solid #facc15; }
+        .status-saida { border-left: 6px solid #ef4444; }
+
+        .table-container { max-height: 65vh; overflow-y: auto; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.5); border-radius: 10px; }
+
+        #modalDetalhes { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(15px); }
 
         input, textarea, select {
-            background: rgba(15, 23, 42, 0.9) !important;
-            border: 1px solid rgba(168, 85, 247, 0.2) !important;
+            background: rgba(0, 0, 0, 0.3) !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
             color: white !important;
+            transition: all 0.2s;
         }
+
+        input:focus { border-color: rgba(168, 85, 247, 0.5) !important; outline: none; }
     </style>
 </head>
-<body class="min-h-screen">
+<body>
 
-    <nav class="bg-slate-900/90 border-b border-purple-500/30 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 flex justify-between items-center h-20">
-            <h1 class="font-black text-xl italic tracking-tighter uppercase">Finance<span class="text-purple-500 ml-1 italic">Pro</span></h1>
-            <div class="flex bg-slate-800/50 p-1 rounded-xl border border-purple-500/20">
-                <button onclick="showTab('lancamentos')" class="tab-btn px-4 py-2 rounded-lg text-xs font-black btn-roxo text-white">Lançamentos</button>
-                <button onclick="showTab('fechamento')" class="tab-btn px-4 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-purple-400">Fechamento</button>
-                <button onclick="showTab('dashboard')" class="tab-btn px-4 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-purple-400">Dashboard</button>
+    <!-- Blobs decorativos -->
+    <div class="blob" style="top: -100px; right: -100px;"></div>
+    <div class="blob" style="bottom: -100px; left: -100px; background: radial-gradient(circle, rgba(79, 70, 229, 0.1) 0%, rgba(0, 0, 0, 0) 70%);"></div>
+
+    <nav class="glass sticky top-0 z-50 px-4 h-20 border-b border-white/5 flex items-center">
+        <div class="max-w-7xl mx-auto w-full flex flex-col md:flex-row justify-between items-center gap-4">
+            <h1 class="font-extrabold text-2xl tracking-tighter italic uppercase text-white">
+                FINANCE<span class="text-purple-500 font-black">PRO</span>
+            </h1>
+            <div class="flex bg-black/40 p-1 rounded-2xl border border-white/5">
+                <button onclick="showTab('lancamentos')" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] md:text-xs font-bold btn-glass-purple text-white">LANÇAMENTOS</button>
+                <button onclick="showTab('fechamento')" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] md:text-xs font-bold text-slate-400">FECHAMENTO</button>
+                <button onclick="showTab('dashboard')" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] md:text-xs font-bold text-slate-400">DASHBOARD</button>
             </div>
         </div>
     </nav>
@@ -65,63 +97,61 @@
         <!-- GUIA 1: LANÇAMENTOS -->
         <section id="tab-lancamentos" class="tab-content grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div class="lg:col-span-1">
-                <div class="card-metalico p-6 sticky top-28">
-                    <form id="formAtendimento" class="space-y-3">
-                        <div class="flex space-x-1">
-                            <button type="button" id="btnEntrada" onclick="setTipo('Entrada')" class="flex-1 py-2.5 rounded-lg font-black text-[10px] btn-roxo text-white">ENTRADA</button>
-                            <button type="button" id="btnSaida" onclick="setTipo('Saída')" class="flex-1 py-2.5 rounded-lg font-black text-[10px] border border-slate-700 text-slate-500">SAÍDA</button>
+                <div class="glass p-6 rounded-3xl sticky top-28">
+                    <form id="formAtendimento" class="space-y-4">
+                        <div class="flex gap-2">
+                            <button type="button" id="btnEntrada" onclick="setTipo('Entrada')" class="flex-1 py-3 rounded-xl font-black text-[10px] btn-glass-purple text-white">ENTRADA</button>
+                            <button type="button" id="btnSaida" onclick="setTipo('Saída')" class="flex-1 py-3 rounded-xl font-black text-[10px] bg-black/20 text-slate-500 border border-white/5">SAÍDA</button>
                         </div>
                         <input type="hidden" id="TIPO" value="Entrada">
-                        <input type="date" id="DIA" class="w-full p-2.5 rounded-xl text-xs" required>
-                        <input type="text" id="HORA" placeholder="Hora" class="w-full p-2.5 rounded-xl text-xs">
-                        <input type="text" id="EMPRESA" placeholder="Empresa" class="w-full p-2.5 rounded-xl text-xs">
-                        <input type="text" id="INTERMEDIO" placeholder="Intermédio" class="w-full p-2.5 rounded-xl text-xs">
-                        <input type="text" id="Local" placeholder="Unidade" class="w-full p-2.5 rounded-xl text-xs">
-                        <input type="text" id="RAT" placeholder="RAT / OS" class="w-full p-2.5 rounded-xl text-xs">
-                        <textarea id="DESCRICAO" placeholder="Descrição..." class="w-full p-2.5 rounded-xl text-xs h-20"></textarea>
+                        <input type="date" id="DIA" class="w-full p-3 rounded-xl text-xs" required>
+                        <input type="text" id="HORA" placeholder="Hora" class="w-full p-3 rounded-xl text-xs">
+                        <input type="text" id="EMPRESA" placeholder="Empresa" class="w-full p-3 rounded-xl text-xs">
+                        <input type="text" id="INTERMEDIO" placeholder="Intermédio" class="w-full p-3 rounded-xl text-xs">
+                        <input type="text" id="Local" placeholder="Unidade" class="w-full p-3 rounded-xl text-xs">
+                        <input type="text" id="RAT" placeholder="RAT / OS" class="w-full p-3 rounded-xl text-xs">
+                        <textarea id="DESCRICAO" placeholder="Descrição técnica..." class="w-full p-3 rounded-xl text-xs h-24"></textarea>
                         <div class="grid grid-cols-2 gap-2 text-[10px]">
                             <input type="number" step="0.01" id="VALOR" placeholder="Valor">
                             <input type="number" step="0.01" id="EXTRA" placeholder="Extra">
                             <input type="number" step="0.01" id="ALIM" placeholder="Alim">
                             <input type="number" step="0.01" id="TRANSP" placeholder="Transp">
                         </div>
-                        <button type="submit" id="btnSalvar" class="w-full btn-roxo text-white py-3 rounded-xl font-black text-xs uppercase">Salvar</button>
+                        <button type="submit" id="btnSalvar" class="w-full btn-glass-purple text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest">GRAVAR DADOS</button>
                     </form>
                 </div>
             </div>
 
-            <div class="lg:col-span-3 card-metalico overflow-hidden">
+            <div class="lg:col-span-3 glass rounded-3xl overflow-hidden border border-white/10">
                 <div class="table-container">
                     <table class="w-full text-left text-xs relative">
-                        <thead class="bg-slate-800 text-purple-300 font-black uppercase sticky top-0 z-10 shadow-lg">
-                            <tr><th class="p-4">Data / Hora</th><th class="p-4">Empresa / RAT</th><th class="p-4 text-right font-black">Total</th></tr>
+                        <thead class="bg-black/40 text-purple-400 font-bold uppercase sticky top-0 z-10 backdrop-blur-md">
+                            <tr><th class="p-5">Data / Hora</th><th class="p-5">Empresa / RAT</th><th class="p-5 text-right font-black">Total</th></tr>
                         </thead>
-                        <tbody id="listaLancamentos" class="divide-y divide-purple-500/10 text-slate-300"></tbody>
+                        <tbody id="listaLancamentos" class="divide-y divide-white/5"></tbody>
                     </table>
                 </div>
             </div>
         </section>
 
         <!-- GUIA 2: FECHAMENTO -->
-        <section id="tab-fechamento" class="tab-content hidden space-y-16">
-            <!-- Gerado via JS -->
-        </section>
+        <section id="tab-fechamento" class="tab-content hidden space-y-12"></section>
 
         <!-- GUIA 3: DASHBOARD -->
         <section id="tab-dashboard" class="tab-content hidden grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="card-metalico p-6"><canvas id="chartFluxo"></canvas></div>
-            <div class="card-metalico p-6"><canvas id="chartEmpresas"></canvas></div>
+            <div class="glass p-8 rounded-3xl"><canvas id="chartFluxo"></canvas></div>
+            <div class="glass p-8 rounded-3xl"><canvas id="chartEmpresas"></canvas></div>
         </section>
     </main>
 
     <!-- MODAL -->
     <div id="modalDetalhes" class="flex items-center justify-center p-4">
-        <div class="card-metalico w-full max-w-lg border-purple-500 shadow-2xl overflow-hidden">
-            <div id="modalHeader" class="p-5 flex justify-between items-center font-black text-xs text-white">
-                <span id="modalStatusText" class="uppercase tracking-widest text-[10px]">DETALHES</span>
-                <button onclick="fecharModal()" class="text-2xl">&times;</button>
+        <div class="glass w-full max-w-lg rounded-3xl overflow-hidden border border-purple-500/30">
+            <div id="modalHeader" class="p-6 flex justify-between items-center text-white">
+                <span id="modalStatusText" class="font-black uppercase text-[10px] tracking-widest">DETALHES</span>
+                <button onclick="fecharModal()" class="text-3xl font-light">&times;</button>
             </div>
-            <div id="modalBody" class="p-6 space-y-4 text-xs"></div>
+            <div id="modalBody" class="p-8 space-y-6"></div>
         </div>
     </div>
 
@@ -139,17 +169,19 @@
             const bE = document.getElementById('btnEntrada');
             const bS = document.getElementById('btnSaida');
             if(t === 'Entrada') {
-                bE.className = "flex-1 py-2.5 rounded-lg font-black text-[10px] btn-roxo text-white";
-                bS.className = "flex-1 py-2.5 rounded-lg font-black text-[10px] border border-slate-700 text-slate-500";
+                bE.className = "flex-1 py-3 rounded-xl font-black text-[10px] btn-glass-purple text-white";
+                bS.className = "flex-1 py-3 rounded-xl font-black text-[10px] bg-black/20 text-slate-500 border border-white/5";
             } else {
-                bS.className = "flex-1 py-2.5 rounded-lg font-black text-[10px] btn-roxo text-white";
-                bE.className = "flex-1 py-2.5 rounded-lg font-black text-[10px] border border-slate-700 text-slate-500";
+                bS.className = "flex-1 py-3 rounded-xl font-black text-[10px] btn-glass-purple text-white";
+                bE.className = "flex-1 py-3 rounded-xl font-black text-[10px] bg-black/20 text-slate-500 border border-white/5";
             }
         }
 
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
             document.getElementById('tab-' + tabId).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.className = "tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] md:text-xs font-bold text-slate-400");
+            event.currentTarget.className = "tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] md:text-xs font-bold btn-glass-purple text-white";
             if(tabId === 'fechamento') carregarFechamentoFinal();
             if(tabId === 'dashboard') renderCharts();
             if(tabId === 'lancamentos') carregarLancamentos();
@@ -178,7 +210,7 @@
 
         async function carregarLancamentos() {
             const lista = document.getElementById('listaLancamentos');
-            lista.innerHTML = '<tr><td colspan="3" class="p-10 text-center font-black animate-pulse uppercase text-purple-500">Sincronizando Banco...</td></tr>';
+            lista.innerHTML = '<tr><td colspan="3" class="p-10 text-center font-black animate-pulse text-purple-500 uppercase tracking-widest">Conectando...</td></tr>';
             const { data, error } = await supabaseClient.from('atendimentos').select('*').order('id', { ascending: false });
             if(error) return;
             dadosCompletos = data;
@@ -186,17 +218,17 @@
             data.forEach((d, i) => {
                 let status = (d.TIPO === 'Saída') ? "status-saida" : (d.PAGAMENTO === 'PAGO' ? "status-pago" : "status-naopago");
                 lista.innerHTML += `
-                    <tr onclick="abrirDetalhes(${i})" class="hover:bg-white/5 cursor-pointer border-b border-white/5">
-                        <td class="p-4 ${status}"><div class="font-black">${d.DIA}</div><div class="text-[9px] text-purple-400 font-bold uppercase">${d.HORA || ''}</div></td>
-                        <td class="p-4"><div class="font-black uppercase">${d.EMPRESA || '-'}</div><div class="text-[9px] text-purple-600 font-black italic">${d.RAT || ''}</div></td>
-                        <td class="p-4 text-right font-black ${d.TIPO === 'Saída' ? 'text-red-400' : 'text-emerald-400'}">R$ ${d.TOTAL || '0.00'}</td>
+                    <tr onclick="abrirDetalhes(${i})" class="hover:bg-purple-500/5 cursor-pointer border-b border-white/5 transition-colors">
+                        <td class="p-5 ${status}"><div class="font-bold text-slate-100">${d.DIA}</div><div class="text-[9px] text-purple-400 font-bold">${d.HORA || ''}</div></td>
+                        <td class="p-5"><div class="font-bold text-slate-200 uppercase">${d.EMPRESA || '-'}</div><div class="text-[9px] text-purple-700 font-bold italic">${d.RAT || ''}</div></td>
+                        <td class="p-5 text-right font-black ${d.TIPO === 'Saída' ? 'text-red-400' : 'text-emerald-400'}">R$ ${d.TOTAL || '0.00'}</td>
                     </tr>`;
             });
         }
 
         async function carregarFechamentoFinal() {
             const container = document.getElementById('tab-fechamento');
-            container.innerHTML = '<div class="p-20 text-center font-black uppercase text-purple-500 animate-pulse italic">Reordenando Cronologia Financeira...</div>';
+            container.innerHTML = '<div class="p-20 text-center font-black uppercase text-purple-500 animate-pulse tracking-widest italic">Calculando Liquid Assets...</div>';
             
             const { data: lancamentos } = await supabaseClient.from('atendimentos').select('*').eq('TIPO', 'Entrada');
             const { data: configs } = await supabaseClient.from('empresas_config').select('*');
@@ -205,76 +237,74 @@
             lancamentos.forEach(l => {
                 const dt = parseDateIntelligent(l);
                 const chave = `${dt.a} - ${mesesNomes[dt.m - 1]}`;
-                if(!grupos[chave]) grupos[chave] = { pendentes: {}, pagos: [] };
+                if(!grupos[chave]) grupos[chave] = { pendentes: {}, pagos: [], totalMesPendente: 0 };
+                
+                const valorLimpo = fixVal(l.TOTAL);
                 if(l.PAGAMENTO !== 'PAGO') {
                     const emp = l.EMPRESA || 'Outros';
                     if(!grupos[chave].pendentes[emp]) grupos[chave].pendentes[emp] = { total: 0, chamados: [] };
-                    grupos[chave].pendentes[emp].total += fixVal(l.TOTAL);
+                    grupos[chave].pendentes[emp].total += valorLimpo;
                     grupos[chave].pendentes[emp].chamados.push(l);
-                } else { grupos[chave].pagos.push(l); }
+                    grupos[chave].totalMesPendente += valorLimpo;
+                } else {
+                    grupos[chave].pagos.push(l);
+                }
             });
 
-            container.innerHTML = '<h2 class="text-xl font-black text-purple-400 uppercase italic border-b border-purple-500/30 pb-4">Fechamentos Gerais</h2>';
+            container.innerHTML = '<h2 class="text-xl font-black text-purple-400 uppercase italic border-b border-white/10 pb-4">Fechamentos Inteligentes</h2>';
             
-            // --- NOVA ORDENAÇÃO CRONOLÓGICA DECRESCENTE ---
             const chavesOrdenadas = Object.keys(grupos).sort((a, b) => {
-                const [yearA, monthA] = a.split(' - ');
-                const [yearB, monthB] = b.split(' - ');
-                const valA = parseInt(yearA) * 100 + (mesesNomes.indexOf(monthA) + 1);
-                const valB = parseInt(yearB) * 100 + (mesesNomes.indexOf(monthB) + 1);
-                return valB - valA; // Maior (mais recente) primeiro
+                const [yA, mA] = a.split(' - ');
+                const [yB, mB] = b.split(' - ');
+                return (parseInt(yB) * 100 + mesesNomes.indexOf(mB)) - (parseInt(yA) * 100 + mesesNomes.indexOf(mA));
             });
 
             chavesOrdenadas.forEach(mesKey => {
                 const g = grupos[mesKey];
-                let htmlMes = `<div class="space-y-8 mt-12 animate-fadeIn">
-                    <div class="flex items-center space-x-4"><h3 class="text-sm font-black text-slate-500 uppercase border-l-4 border-purple-600 pl-3">${mesKey}</h3><div class="flex-1 h-[1px] bg-white/5"></div></div>`;
+                let htmlMes = `
+                <div class="space-y-8 animate-fadeIn">
+                    <div class="glass p-6 rounded-3xl border-l-8 border-purple-600 flex justify-between items-center shadow-2xl">
+                        <h3 class="text-xs md:text-sm font-black text-slate-100 uppercase tracking-widest">${mesKey}</h3>
+                        <div class="text-right">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase block">Total Geral Pendente</span>
+                            <span class="text-lg md:text-2xl font-black text-purple-400 italic">R$ ${g.totalMesPendente.toFixed(2)}</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">`;
                 
-                htmlMes += `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">`;
-                const empPendentes = Object.keys(g.pendentes);
-                if(empPendentes.length === 0) {
-                    htmlMes += `<div class="col-span-full py-4 text-[9px] text-slate-600 uppercase italic">Pagamentos em dia. 💎</div>`;
-                } else {
-                    empPendentes.forEach(emp => {
-                        const info = g.pendentes[emp];
-                        const conf = configs?.find(x => x.nome_empresa === emp);
-                        htmlMes += `
-                            <div class="card-metalico p-6 status-naopago shadow-2xl">
-                                <h4 class="font-black text-white text-[10px] uppercase mb-4 border-b border-white/10 pb-2">${emp}</h4>
-                                <div class="space-y-2 mb-6">
-                                    ${info.chamados.map(i => `
-                                        <div class="flex justify-between items-start text-[9px] border-b border-white/5 pb-1">
-                                            <div class="text-slate-400 font-black">${i.DIA} <span class="text-[8px] opacity-50 ml-1">(${i.Local || '-'})</span></div>
-                                            <div class="font-black text-white italic">R$ ${i.TOTAL}</div>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                                <div class="flex justify-between items-center mb-6">
-                                    <span class="text-[8px] font-black text-amber-500 uppercase">Total Pendente:</span>
-                                    <span class="text-xl font-black text-purple-400 italic font-mono">R$ ${info.total.toFixed(2)}</span>
-                                </div>
-                                <div class="text-[8px] text-slate-500 bg-black/40 p-3 rounded-xl border border-white/5 space-y-1 font-bold">
-                                    <p class="flex justify-between uppercase"><span>📧 Email:</span> <span>${conf?.email_fechamento || '---'}</span></p>
-                                    <p class="flex justify-between uppercase"><span>⏳ Prazo:</span> <span>${conf?.prazo_envio || '---'}</span></p>
-                                </div>
-                            </div>`;
-                    });
-                }
+                Object.keys(g.pendentes).forEach(emp => {
+                    const info = g.pendentes[emp];
+                    const conf = configs?.find(x => x.nome_empresa === emp);
+                    htmlMes += `
+                        <div class="glass p-6 rounded-3xl status-naopago border border-white/5">
+                            <h4 class="font-black text-white text-[10px] uppercase mb-4 border-b border-white/10 pb-2">${emp}</h4>
+                            <div class="space-y-2 mb-6">
+                                ${info.chamados.map(i => `
+                                    <div class="flex justify-between items-start text-[9px] border-b border-white/5 pb-1">
+                                        <div class="text-slate-400 font-bold">${i.DIA} <span class="text-[8px] opacity-40 ml-1">(${i.Local || '-'})</span></div>
+                                        <div class="font-black text-white italic">R$ ${i.TOTAL}</div>
+                                    </div>`).join('')}
+                            </div>
+                            <div class="text-[8px] text-slate-500 bg-black/40 p-3 rounded-2xl border border-white/5 space-y-1">
+                                <p class="flex justify-between"><span>E-MAIL:</span> <b class="text-white">${conf?.email_fechamento || '---'}</b></p>
+                                <p class="flex justify-between"><span>PRAZO:</span> <b class="text-white">${conf?.prazo_envio || '---'}</b></p>
+                            </div>
+                        </div>`;
+                });
+                
                 htmlMes += `</div>`;
-
                 if(g.pagos.length > 0) {
-                    htmlMes += `<div class="mt-8 bg-black/20 rounded-2xl p-6 border border-emerald-500/10">
-                        <h5 class="text-[9px] font-black text-emerald-500 uppercase mb-4 tracking-widest italic">✔ Histórico de Recebimentos (${mesKey})</h5>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    htmlMes += `<div class="bg-emerald-500/5 rounded-3xl p-6 border border-emerald-500/10">
+                        <h5 class="text-[9px] font-black text-emerald-500 uppercase mb-4 tracking-widest">✔ RECEBIDOS EM ${mesKey.split(' - ')[1]}</h5>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             ${g.pagos.map(p => `
-                                <div class="flex justify-between items-center border-b border-white/5 pb-1">
-                                    <div class="text-[8px] font-black text-slate-400 uppercase leading-none"><b>${p.EMPRESA}</b><br><span class="opacity-40 font-bold">${p.DIA} - ${p.Local}</span></div>
-                                    <div class="text-[11px] font-black text-emerald-400 italic">R$ ${p.TOTAL}</div>
+                                <div class="flex justify-between items-center text-[9px] border-b border-white/5 pb-1">
+                                    <span class="font-bold text-slate-500">${p.EMPRESA}</span>
+                                    <span class="font-black text-emerald-400 italic text-xs">R$ ${p.TOTAL}</span>
                                 </div>`).join('')}
                         </div></div>`;
                 }
-                htmlMes += `</div>`;
-                container.innerHTML += htmlMes;
+                container.innerHTML += htmlMes + `</div>`;
             });
         }
 
@@ -283,26 +313,26 @@
             const modal = document.getElementById('modalDetalhes');
             const head = document.getElementById('modalHeader');
             const body = document.getElementById('modalBody');
-            let bg = item.TIPO === 'Saída' ? 'bg-red-500/80' : (item.PAGAMENTO === 'PAGO' ? 'bg-emerald-600/80' : 'bg-amber-500/80');
-            head.className = `p-4 flex justify-between items-center font-black text-white ${bg}`;
+            let bg = item.TIPO === 'Saída' ? 'bg-red-500/60' : (item.PAGAMENTO === 'PAGO' ? 'bg-emerald-600/60' : 'bg-amber-500/60');
+            head.className = `p-6 flex justify-between items-center text-white ${bg} backdrop-blur-md`;
             body.innerHTML = `
                 <div class="grid grid-cols-2 gap-4 border-b border-white/5 pb-4 uppercase">
-                    <div><label class="text-[9px] font-black text-purple-400 uppercase">EMPRESA</label><p class="font-black text-white text-base leading-tight">${item.EMPRESA || '-'}</p></div>
-                    <div><label class="text-[9px] font-black text-purple-400 uppercase">RAT / OS</label><p class="font-black text-purple-400 italic text-base italic leading-tight">${item.RAT || '-'}</p></div>
+                    <div><label class="text-[9px] font-black text-purple-400">EMPRESA</label><p class="font-black text-white text-lg">${item.EMPRESA || '-'}</p></div>
+                    <div><label class="text-[9px] font-black text-purple-400">RAT</label><p class="font-black text-purple-500 italic text-lg tracking-widest">${item.RAT || '-'}</p></div>
                 </div>
                 <div class="grid grid-cols-2 gap-4 border-b border-white/5 pb-4 uppercase">
                     <div><label class="text-[9px] font-black text-purple-400">Intermédio</label><p class="font-bold text-slate-200">${item["INTERMÉDIO"] || item.INTERMEDIO || '-'}</p></div>
                     <div><label class="text-[9px] font-black text-purple-400">Local</label><p class="font-bold text-slate-200">${item.Local || '-'}</p></div>
                 </div>
-                <div class="bg-black/30 p-4 rounded-xl italic text-slate-400 leading-relaxed border border-white/5 font-mono text-[11px]">"${item["DESCRIÇÃO"] || '---'}"</div>
-                <div class="grid grid-cols-4 gap-2 text-center text-[8px] font-black">
-                    <div class="bg-slate-800 p-2 rounded-lg text-slate-400">BASE<br><span class="text-white text-xs">${item.VALOR || 0}</span></div>
-                    <div class="bg-slate-800 p-2 rounded-lg text-slate-400">EXTRA<br><span class="text-white text-xs">${item.EXTRA || 0}</span></div>
-                    <div class="bg-slate-800 p-2 rounded-lg text-slate-400">ALIM<br><span class="text-white text-xs">${item.ALIM || 0}</span></div>
-                    <div class="bg-slate-800 p-2 rounded-lg text-slate-400">TRANSP<br><span class="text-white text-xs">${item.TRANSP || 0}</span></div>
+                <div class="bg-black/30 p-4 rounded-2xl italic text-slate-400 text-[10px] leading-relaxed border border-white/5">"${item["DESCRIÇÃO"] || '---'}"</div>
+                <div class="grid grid-cols-4 gap-2 text-center text-[8px] font-black uppercase">
+                    <div class="bg-white/5 p-2 rounded-xl text-slate-400">Base<br><span class="text-white text-xs">${item.VALOR || 0}</span></div>
+                    <div class="bg-white/5 p-2 rounded-xl text-slate-400">Extra<br><span class="text-white text-xs">${item.EXTRA || 0}</span></div>
+                    <div class="bg-white/5 p-2 rounded-xl text-slate-400">Alim<br><span class="text-white text-xs">${item.ALIM || 0}</span></div>
+                    <div class="bg-white/5 p-2 rounded-xl text-slate-400">Transp<br><span class="text-white text-xs">${item.TRANSP || 0}</span></div>
                 </div>
-                <div class="btn-roxo p-5 rounded-2xl flex justify-between items-center text-white shadow-2xl">
-                    <span class="text-[9px] font-black uppercase tracking-[0.2em] italic opacity-60">Total</span>
+                <div class="btn-glass-purple p-6 rounded-3xl flex justify-between items-center text-white shadow-2xl">
+                    <span class="text-[10px] font-black uppercase opacity-60 italic tracking-widest">Total Líquido</span>
                     <span class="text-2xl font-black italic tracking-tighter">R$ ${item.TOTAL || '0.00'}</span>
                 </div>`;
             modal.style.display = "flex";
@@ -313,9 +343,11 @@
         document.getElementById('formAtendimento').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSalvar');
-            btn.disabled = true; btn.innerText = "GRAVANDO...";
-            const dIn = document.getElementById('DIA').value; 
-            const parts = dIn.split('-');
+            btn.disabled = true; btn.innerText = "Sincronizando...";
+            const dataIn = document.getElementById('DIA').value; 
+            const parts = dataIn.split('-');
+            const total = (fixVal(document.getElementById('VALOR').value) + fixVal(document.getElementById('EXTRA').value) + fixVal(document.getElementById('ALIM').value) + fixVal(document.getElementById('TRANSP').value)).toFixed(2);
+            
             const payload = {
                 TIPO: tipoAtual, DIA: `${parts[2]}/${parts[1]}/${parts[0]}`,
                 HORA: document.getElementById('HORA').value, EMPRESA: document.getElementById('EMPRESA').value,
@@ -325,7 +357,7 @@
                 EXTRA: parseFloat(document.getElementById('EXTRA').value || 0).toFixed(2),
                 ALIM: parseFloat(document.getElementById('ALIM').value || 0).toFixed(2),
                 TRANSP: parseFloat(document.getElementById('TRANSP').value || 0).toFixed(2),
-                TOTAL: (fixVal(document.getElementById('VALOR').value) + fixVal(document.getElementById('EXTRA').value) + fixVal(document.getElementById('ALIM').value) + fixVal(document.getElementById('TRANSP').value)).toFixed(2),
+                TOTAL: total,
                 PAGAMENTO: tipoAtual === 'Saída' ? 'SAÍDA' : 'NÃO PAGO',
                 "Mês": parseInt(parts[1]), "ANO": parseInt(parts[0])
             };
@@ -333,7 +365,6 @@
             location.reload();
         });
 
-        let fluxoChart, empresaChart;
         async function renderCharts() {
             const { data } = await supabaseClient.from('atendimentos').select('*');
             if(!data) return;
@@ -351,9 +382,8 @@
                     } else { saidas[m] += val; }
                 }
             });
-            if(fluxoChart) fluxoChart.destroy();
-            if(empresaChart) empresaChart.destroy();
-            fluxoChart = new Chart(document.getElementById('chartFluxo'), {
+            Chart.defaults.color = '#94a3b8';
+            new Chart(document.getElementById('chartFluxo'), {
                 type: 'line',
                 data: {
                     labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
@@ -361,10 +391,11 @@
                         { label: 'Ganhos', data: entradas, borderColor: '#10b981', tension: 0.4, fill: true, backgroundColor: 'rgba(16, 185, 129, 0.1)' },
                         { label: 'Gastos', data: saidas, borderColor: '#ef4444', tension: 0.4, fill: true, backgroundColor: 'rgba(239, 68, 68, 0.1)' }
                     ]
-                }
+                },
+                options: { scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } } } }
             });
             const topEmpresas = Object.entries(empresasMap).sort((a,b) => b[1]-a[1]).slice(0, 5);
-            empresaChart = new Chart(document.getElementById('chartEmpresas'), {
+            new Chart(document.getElementById('chartEmpresas'), {
                 type: 'doughnut',
                 data: {
                     labels: topEmpresas.map(x => x[0]),
