@@ -90,10 +90,19 @@
     </main>
 
     <script>
+        // CONFIGURAÇÃO SUPABASE
         const SB_URL = "https://ctvnkjrpoyaancoxwles.supabase.co";
-        const SB_KEY = "SUA_KEY_AQUI"; // Certifique-se que é a mesma key
+        const SB_KEY = "SUA_KEY_AQUI"; // COLOQUE SUA KEY AQUI
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-
+        
+        // FUNÇÃO AUXILIAR: Transforma texto "R$ 150,00" ou "150,00" em número real 150.00
+        function limparValor(valor) {
+            if (!valor) return 0;
+            // Remove R$, espaços e converte vírgula em ponto
+            let limpo = valor.toString().replace("R$", "").replace(/\s/g, "").replace(",", ".");
+            return parseFloat(limpo) || 0;
+        }
+        
         // NAVEGAÇÃO DE ABAS
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
@@ -103,13 +112,49 @@
             
             if(tabId === 'dashboard') renderCharts();
         }
-
-        // SALVAR NOVO
+        
+        // CARREGAR DADOS INICIAIS (LISTA)
+        async function carregarDadosIniciais() {
+            const lista = document.getElementById('listaRecente');
+            lista.innerHTML = '<tr><td colspan="3" class="p-4 text-center">Carregando...</td></tr>';
+        
+            try {
+                const { data, error } = await supabaseClient
+                    .from('atendimentos')
+                    .select('*')
+                    .order('id', { ascending: false })
+                    .limit(20);
+        
+                if (error) throw error;
+        
+                lista.innerHTML = '';
+                data.forEach(d => {
+                    const corValor = d.TIPO === 'Saída' ? 'text-red-500' : 'text-emerald-600';
+                    lista.innerHTML += `
+                        <tr class="border-b hover:bg-slate-50">
+                            <td class="p-3 text-xs text-slate-500">${d.DIA || ''}</td>
+                            <td class="p-3 font-medium">${d.EMPRESA || 'S/N'}</td>
+                            <td class="p-3 text-right font-bold ${corValor}">R$ ${d.TOTAL || '0.00'}</td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                console.error("Erro ao carregar lista:", err);
+                lista.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-red-500">Erro ao carregar dados</td></tr>';
+            }
+        }
+        
+        // SALVAR NOVO REGISTRO
         document.getElementById('formAtendimento').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btn = e.submitter;
+            btn.disabled = true;
+            btn.innerText = "Salvando...";
+        
             const d = document.getElementById('DIA').value;
             const v = parseFloat(document.getElementById('VALOR').value || 0);
             const ex = parseFloat(document.getElementById('EXTRA').value || 0);
+            const totalCalc = (v + ex).toFixed(2);
             
             const payload = {
                 TIPO: document.getElementById('TIPO').value,
@@ -120,101 +165,111 @@
                 "DESCRIÇÃO": document.getElementById('DESCRICAO').value,
                 VALOR: v.toFixed(2),
                 EXTRA: ex.toFixed(2),
-                TOTAL: (v + ex).toFixed(2),
+                TOTAL: totalCalc,
                 PAGAMENTO: "PENDENTE",
                 "Mês": parseInt(d.split('-')[1]),
                 "ANO": parseInt(d.split('-')[0])
             };
-
-            await supabaseClient.from('atendimentos').insert([payload]);
-            alert("Salvo!");
-            location.reload();
+        
+            const { error } = await supabaseClient.from('atendimentos').insert([payload]);
+            
+            if (error) {
+                alert("Erro: " + error.message);
+            } else {
+                alert("Salvo com sucesso!");
+                location.reload();
+            }
         });
-
+        
         // LÓGICA DE FECHAMENTO
         async function gerarFechamento() {
-            const filtro = document.getElementById('filtroMes').value; // YYYY-MM
+            const filtro = document.getElementById('filtroMes').value;
             if(!filtro) return alert("Escolha o mês");
-
+        
             const ano = parseInt(filtro.split('-')[0]);
             const mes = parseInt(filtro.split('-')[1]);
-
-            // Busca atendimentos pendentes e configurações das empresas
+        
             const { data: chamados } = await supabaseClient.from('atendimentos')
                 .select('*').eq('ANO', ano).eq('Mês', mes).eq('PAGAMENTO', 'PENDENTE');
             
             const { data: configs } = await supabaseClient.from('empresas_config').select('*');
-
+        
             const container = document.getElementById('cardsFechamento');
-            container.innerHTML = "";
-
-            // Agrupa por empresa
+            container.innerHTML = chamados.length === 0 ? "<p class='col-span-2 text-center p-10 text-slate-400'>Nenhum chamado pendente neste mês.</p>" : "";
+        
             const agrupado = {};
             chamados.forEach(c => {
                 if(!agrupado[c.EMPRESA]) agrupado[c.EMPRESA] = { total: 0, qtd: 0 };
-                agrupado[c.EMPRESA].total += parseFloat(c.TOTAL.replace(',','.'));
+                agrupado[c.EMPRESA].total += limparValor(c.TOTAL);
                 agrupado[c.EMPRESA].qtd++;
             });
-
+        
             for (let emp in agrupado) {
                 const conf = configs.find(x => x.nome_empresa === emp) || {};
                 container.innerHTML += `
                     <div class="bg-white p-5 rounded-xl border-l-4 border-amber-500 shadow-sm">
-                        <div class="flex justify-between border-b pb-2 mb-2">
-                            <h3 class="font-black text-slate-700">${emp}</h3>
-                            <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs font-bold">PENDENTE</span>
+                        <h3 class="font-black text-slate-700 border-b pb-2 mb-2">${emp}</h3>
+                        <div class="grid grid-cols-2 text-sm">
+                            <p>Chamados: ${agrupado[emp].qtd}</p>
+                            <p class="text-right text-lg text-indigo-700 font-bold">R$ ${agrupado[emp].total.toFixed(2)}</p>
                         </div>
-                        <div class="grid grid-cols-2 text-sm gap-2">
-                            <p><b>Chamados:</b> ${agrupado[emp].qtd}</p>
-                            <p class="text-right text-lg text-indigo-700"><b>R$ ${agrupado[emp].total.toFixed(2)}</b></p>
-                        </div>
-                        <div class="mt-4 pt-3 border-t text-xs text-slate-500 space-y-1">
-                            <p>📧 <b>Email:</b> ${conf.email_fechamento || 'Não cadastrado'}</p>
-                            <p>⏳ <b>Prazo:</b> ${conf.prazo_envio || '-'}</p>
-                            <p>📄 <b>NF:</b> ${conf.exige_nf ? 'Sim, obrigatório' : 'Não necessária'}</p>
+                        <div class="mt-4 pt-3 border-t text-[10px] text-slate-500">
+                            <p>📧 ${conf.email_fechamento || 'Email não cadastrado'}</p>
+                            <p>⏳ Prazo: ${conf.prazo_envio || '-'}</p>
                         </div>
                     </div>
                 `;
             }
         }
-
-        // DASHBOARD COM CHART.JS
+        
+        // DASHBOARD
         async function renderCharts() {
             const { data } = await supabaseClient.from('atendimentos').select('*');
             
-            // Lógica simples para Entradas vs Saídas
-            const mesesLabels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
             const entradas = new Array(12).fill(0);
             const saidas = new Array(12).fill(0);
-
+            const porEmpresa = {};
+        
             data.forEach(d => {
-                const m = d.Mês - 1;
-                const valor = parseFloat(d.TOTAL.replace(',','.'));
-                if(d.TIPO === 'Entrada') entradas[m] += valor;
-                else saidas[m] += valor;
+                const mesIdx = parseInt(d["Mês"]) - 1;
+                const valor = limparValor(d.TOTAL);
+                
+                if (mesIdx >= 0 && mesIdx < 12) {
+                    if(d.TIPO === 'Entrada') {
+                        entradas[mesIdx] += valor;
+                        porEmpresa[d.EMPRESA] = (porEmpresa[d.EMPRESA] || 0) + valor;
+                    } else {
+                        saidas[mesIdx] += valor;
+                    }
+                }
             });
-
+        
+            // Resetar canvas para evitar sobreposição
+            document.getElementById('chartFluxo').outerHTML = '<canvas id="chartFluxo"></canvas>';
+            document.getElementById('chartEmpresas').outerHTML = '<canvas id="chartEmpresas"></canvas>';
+        
             new Chart(document.getElementById('chartFluxo'), {
-                type: 'bar',
+                type: 'line',
                 data: {
-                    labels: mesesLabels,
+                    labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
                     datasets: [
-                        { label: 'Entradas', data: entradas, backgroundColor: '#10b981' },
-                        { label: 'Saídas', data: saidas, backgroundColor: '#ef4444' }
+                        { label: 'Ganhos', data: entradas, borderColor: '#10b981', tension: 0.3 },
+                        { label: 'Gastos', data: saidas, borderColor: '#ef4444', tension: 0.3 }
                     ]
                 }
             });
-        }
-
-        // Início
-        carregarDadosIniciais();
-        async function carregarDadosIniciais() {
-            const { data } = await supabaseClient.from('atendimentos').select('*').limit(10).order('id', {ascending:false});
-            const lista = document.getElementById('listaRecente');
-            data.forEach(d => {
-                lista.innerHTML += `<tr class="border-b"><td class="p-3 text-xs">${d.DIA}</td><td class="p-3">${d.EMPRESA}</td><td class="p-3 text-right font-bold">R$ ${d.TOTAL}</td></tr>`;
+        
+            new Chart(document.getElementById('chartEmpresas'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(porEmpresa),
+                    datasets: [{ data: Object.values(porEmpresa), backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'] }]
+                }
             });
         }
+        
+        // Iniciar
+        carregarDadosIniciais();
     </script>
 </body>
 </html>
