@@ -42,6 +42,8 @@
         .modal-card { max-height: 90vh; display: flex; flex-direction: column; width: 95%; max-width: 32rem; margin: auto; }
         .modal-body-scroll { overflow-y: auto; flex-grow: 1; padding: 1.5rem; }
         .circle-icon-btn { background: rgba(255, 255, 255, 0.15); border: 1.5px solid rgba(255, 255, 255, 0.5); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: white; transition: 0.2s; }
+        .circle-icon-btn:hover { background: rgba(255, 255, 255, 0.25); transform: scale(1.05); }
+        .circle-icon-btn.btn-delete:hover { background: rgba(239, 68, 68, 0.4); border-color: #ef4444; }
         .edit-input { width: 100%; border: 1px solid #a855f7 !important; padding: 10px; font-size: 14px; }
     </style>
 </head>
@@ -98,7 +100,10 @@
             </div>
 
             <div class="lg:col-span-3 flex flex-col gap-4">
-                <div class="glass p-2 rounded-2xl">
+                <div class="glass p-2 rounded-2xl flex items-center px-6">
+                    <svg class="w-5 h-5 text-slate-500 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
                     <input type="text" id="inputBusca" onkeyup="filtrarLancamentos()" placeholder="Pesquisar por empresa, data ou RAT..." class="w-full bg-transparent border-none outline-none text-base p-4 placeholder:text-slate-500">
                 </div>
                 <div class="glass rounded-3xl overflow-hidden">
@@ -126,11 +131,18 @@
             <div class="glass modal-card rounded-3xl overflow-hidden border border-purple-500/30">
                 <div id="modalHeader" class="p-6 flex justify-between items-center text-white border-b border-white/10 sticky top-0 z-20 backdrop-blur-xl">
                     <span id="modalStatusText" class="font-black uppercase text-[10px] opacity-60 tracking-widest">DETALHES</span>
-                    <div class="flex items-center gap-4">
-                        <button onclick="toggleEditMode()" class="circle-icon-btn">
+                    <div class="flex items-center gap-3">
+                        <!-- BOTÃO DELETAR -->
+                        <button onclick="deletarLancamento()" class="circle-icon-btn btn-delete" title="Excluir Lançamento">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                        <!-- BOTÃO EDITAR -->
+                        <button onclick="toggleEditMode()" class="circle-icon-btn" title="Editar Lançamento">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-width="2.5"/></svg>
                         </button>
-                        <button onclick="fecharModal()" class="text-4xl leading-none font-light">&times;</button>
+                        <button onclick="fecharModal()" class="text-4xl leading-none font-light ml-2">&times;</button>
                     </div>
                 </div>
                 <div id="modalBody" class="modal-body-scroll space-y-6"></div>
@@ -210,6 +222,22 @@
             document.getElementById('modalDetalhes').style.display = "block";
         }
 
+        async function deletarLancamento() {
+            if(confirm("Deseja realmente excluir este lançamento permanentemente? Esta ação não pode ser desfeita.")) {
+                const { error } = await supabaseClient
+                    .from('atendimentos')
+                    .delete()
+                    .eq('id', itemSendoEditado.id);
+
+                if(!error) {
+                    fecharModal();
+                    carregarLancamentos();
+                } else {
+                    alert("Erro ao excluir do banco de dados: " + error.message);
+                }
+            }
+        }
+
         function renderizarModalBody() {
             const item = itemSendoEditado; const body = document.getElementById('modalBody'); const head = document.getElementById('modalHeader');
             let colorClass = item.TIPO === 'Saída' ? 'bg-red-500/80' : (item.PAGAMENTO === 'PAGO' ? 'bg-emerald-600/80' : 'bg-orange-500/80');
@@ -280,7 +308,6 @@
                 if(!l.DIA) return;
                 
                 let dia, mes, ano;
-                // Parsing inteligente de data (hífen ou barra)
                 if (l.DIA.includes('-')) {
                     const parts = l.DIA.split('-');
                     ano = parts[0]; mes = parts[1]; dia = parts[2];
@@ -397,12 +424,13 @@
         
         document.getElementById('formAtendimento').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const d = document.getElementById('DIA').value.split('-');
+            const dInput = document.getElementById('DIA').value;
+            const dParts = dInput.split('-');
             const v = fixVal(document.getElementById('VALOR').value), ex = fixVal(document.getElementById('EXTRA').value), al = fixVal(document.getElementById('ALIM').value), tr = fixVal(document.getElementById('TRANSP').value);
             const totalNum = v+ex+al+tr;
             const payload = {
-                TIPO: tipoAtual, DIA: `${d[2]}/${d[1]}/${d[0]}`, EMPRESA: document.getElementById('EMPRESA').value.toUpperCase(), "INTERMÉDIO": document.getElementById('INTERMEDIO').value.toUpperCase(), Local: document.getElementById('Local').value.toUpperCase(), RAT: document.getElementById('RAT').value, "DESCRIÇÃO": document.getElementById('DESCRICAO').value,
-                VALOR: formatarParaDB(v), EXTRA: formatarParaDB(ex), ALIM: formatarParaDB(al), TRANSP: formatarParaDB(tr), TOTAL: formatarParaDB(totalNum), PAGAMENTO: tipoAtual === 'Saída' ? 'SAÍDA' : 'NÃO PAGO', "Mês": parseInt(d[1]), "ANO": parseInt(d[0])
+                TIPO: tipoAtual, DIA: `${dParts[2]}/${dParts[1]}/${dParts[0]}`, EMPRESA: document.getElementById('EMPRESA').value.toUpperCase(), "INTERMÉDIO": document.getElementById('INTERMEDIO').value.toUpperCase(), Local: document.getElementById('Local').value.toUpperCase(), RAT: document.getElementById('RAT').value, "DESCRIÇÃO": document.getElementById('DESCRICAO').value,
+                VALOR: formatarParaDB(v), EXTRA: formatarParaDB(ex), ALIM: formatarParaDB(al), TRANSP: formatarParaDB(tr), TOTAL: formatarParaDB(totalNum), PAGAMENTO: tipoAtual === 'Saída' ? 'SAÍDA' : 'NÃO PAGO', "Mês": parseInt(dParts[1]), "ANO": parseInt(dParts[0])
             };
             const { error } = await supabaseClient.from('atendimentos').insert([payload]);
             if(!error) location.reload(); else alert("Erro!");
@@ -413,11 +441,9 @@
             const entradas = new Array(12).fill(0), saidas = new Array(12).fill(0), eMap = {};
             data.forEach(d => {
                 if(!d.DIA) return;
-                
                 let mes;
                 if (d.DIA.includes('-')) { mes = parseInt(d.DIA.split('-')[1]); }
                 else { mes = parseInt(d.DIA.split('/')[1]); }
-                
                 const mIdx = mes - 1, v = fixVal(d.TOTAL);
                 if(mIdx >= 0 && mIdx < 12) { 
                     if(d.TIPO === 'Entrada') { 
