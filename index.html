@@ -118,10 +118,28 @@
                 </div>
             </div>
         </section>
+        
         <section id="tab-fechamento" class="tab-content hidden space-y-12"></section>
-        <section id="tab-dashboard" class="tab-content hidden grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="glass p-8 rounded-3xl"><canvas id="chartFluxo"></canvas></div>
-            <div class="glass p-8 rounded-3xl"><canvas id="chartEmpresas"></canvas></div>
+
+        <!-- DASHBOARD -->
+        <section id="tab-dashboard" class="tab-content hidden flex flex-col gap-8">
+            <div class="glass p-6 rounded-3xl flex flex-wrap items-center gap-6">
+                <h2 class="text-xl font-black text-purple-400 italic uppercase">Filtros Analíticos</h2>
+                <div class="flex gap-4">
+                    <select id="filtroAnoDash" onchange="renderCharts()" class="p-3 text-xs font-bold uppercase min-w-[120px]"></select>
+                    <select id="filtroMesDash" onchange="renderCharts()" class="p-3 text-xs font-bold uppercase min-w-[150px]">
+                        <option value="TODOS">Todos os Meses</option>
+                        <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
+                        <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
+                        <option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option>
+                        <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="glass p-8 rounded-3xl min-h-[400px]"><canvas id="chartFluxo"></canvas></div>
+                <div class="glass p-8 rounded-3xl min-h-[400px]"><canvas id="chartEmpresas"></canvas></div>
+            </div>
         </section>
     </main>
 
@@ -132,13 +150,11 @@
                 <div id="modalHeader" class="p-6 flex justify-between items-center text-white border-b border-white/10 sticky top-0 z-20 backdrop-blur-xl">
                     <span id="modalStatusText" class="font-black uppercase text-[10px] opacity-60 tracking-widest">DETALHES</span>
                     <div class="flex items-center gap-3">
-                        <!-- BOTÃO DELETAR -->
                         <button onclick="deletarLancamento()" class="circle-icon-btn btn-delete" title="Excluir Lançamento">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
                         </button>
-                        <!-- BOTÃO EDITAR -->
                         <button onclick="toggleEditMode()" class="circle-icon-btn" title="Editar Lançamento">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-width="2.5"/></svg>
                         </button>
@@ -160,7 +176,7 @@
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
         let dadosCompletos = [], itemSendoEditado = null, editMode = false, tipoAtual = 'Entrada';
-        let filtroFechamento = 'TODOS';
+        let filtroFechamento = 'TODOS', chart1 = null, chart2 = null;
         const mesesNomes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
         function fixVal(v) {
@@ -199,7 +215,25 @@
 
         async function carregarLancamentos() {
             const { data, error } = await supabaseClient.from('atendimentos').select('*').order('id', { ascending: false });
-            if(!error) { dadosCompletos = data; renderizarTabela(data); }
+            if(!error) { 
+                dadosCompletos = data; 
+                renderizarTabela(data);
+                popularFiltroAno();
+            }
+        }
+
+        function popularFiltroAno() {
+            const selectAno = document.getElementById('filtroAnoDash');
+            if(selectAno.options.length > 0) return;
+            const anos = [...new Set(dadosCompletos.map(d => {
+                if (d.DIA.includes('-')) return d.DIA.split('-')[0];
+                return d.DIA.split('/')[2];
+            }))].sort((a,b) => b-a);
+            anos.forEach(ano => {
+                let opt = document.createElement('option'); opt.value = ano; opt.innerText = ano;
+                selectAno.appendChild(opt);
+            });
+            if(anos.length > 0) selectAno.value = anos[0];
         }
 
         function renderizarTabela(dados) {
@@ -223,18 +257,9 @@
         }
 
         async function deletarLancamento() {
-            if(confirm("Deseja realmente excluir este lançamento permanentemente? Esta ação não pode ser desfeita.")) {
-                const { error } = await supabaseClient
-                    .from('atendimentos')
-                    .delete()
-                    .eq('id', itemSendoEditado.id);
-
-                if(!error) {
-                    fecharModal();
-                    carregarLancamentos();
-                } else {
-                    alert("Erro ao excluir do banco de dados: " + error.message);
-                }
+            if(confirm("Deseja realmente excluir este lançamento?")) {
+                const { error } = await supabaseClient.from('atendimentos').delete().eq('id', itemSendoEditado.id);
+                if(!error) { fecharModal(); await carregarLancamentos(); } else { alert("Erro ao excluir!"); }
             }
         }
 
@@ -242,7 +267,6 @@
             const item = itemSendoEditado; const body = document.getElementById('modalBody'); const head = document.getElementById('modalHeader');
             let colorClass = item.TIPO === 'Saída' ? 'bg-red-500/80' : (item.PAGAMENTO === 'PAGO' ? 'bg-emerald-600/80' : 'bg-orange-500/80');
             head.className = `p-6 flex justify-between items-center text-white border-b border-white/10 sticky top-0 z-20 backdrop-blur-xl ${colorClass}`;
-
             body.innerHTML = `
                 <div class="grid grid-cols-2 gap-4 uppercase border-b border-white/10 pb-4">
                     <div><label class="text-[9px] font-black text-purple-400">EMPRESA</label>${editMode ? `<input id="edit_empresa" class="edit-input" value="${item.EMPRESA || ''}">` : `<p class="font-black text-white text-base leading-tight">${item.EMPRESA || '-'}</p>`}</div>
@@ -270,7 +294,7 @@
                 VALOR: formatarParaDB(v), EXTRA: formatarParaDB(ex), ALIM: formatarParaDB(al), TRANSP: formatarParaDB(tr), TOTAL: formatarParaDB(totalNum)
             };
             const { error } = await supabaseClient.from('atendimentos').update(updates).eq('id', itemSendoEditado.id);
-            if (!error) { fecharModal(); carregarLancamentos(); } else alert("Erro ao salvar!");
+            if (!error) { fecharModal(); await carregarLancamentos(); } else alert("Erro ao salvar!");
         }
 
         function toggleEditMode() { editMode = !editMode; document.getElementById('modalFooter').classList.toggle('hidden', !editMode); renderizarModalBody(); }
@@ -286,55 +310,28 @@
             if(tabId === 'fechamento') carregarFechamentoFinal(); if(tabId === 'dashboard') renderCharts(); if(tabId === 'lancamentos') carregarLancamentos();
         }
 
-        function filterFechamento(tipo) {
-            filtroFechamento = tipo;
-            carregarFechamentoFinal();
-        }
+        function filterFechamento(tipo) { filtroFechamento = tipo; carregarFechamentoFinal(); }
 
         async function carregarFechamentoFinal() {
-            const container = document.getElementById('tab-fechamento'); 
-            container.innerHTML = '<div class="p-20 text-center animate-pulse uppercase font-black text-purple-500">Mapeando histórico...</div>';
-            
-            const { data: lancamentos } = await supabaseClient.from('atendimentos')
-                .select('*')
-                .eq('TIPO', 'Entrada')
-                .order('id', { ascending: false });
-
+            const container = document.getElementById('tab-fechamento'); container.innerHTML = '<div class="p-20 text-center animate-pulse uppercase font-black text-purple-500">Mapeando histórico...</div>';
+            const { data: lancamentos } = await supabaseClient.from('atendimentos').select('*').eq('TIPO', 'Entrada').order('id', { ascending: false });
             const { data: configs } = await supabaseClient.from('empresas_config').select('*');
-            
             const grupos = {};
-            
             lancamentos.forEach(l => {
                 if(!l.DIA) return;
-                
                 let dia, mes, ano;
-                if (l.DIA.includes('-')) {
-                    const parts = l.DIA.split('-');
-                    ano = parts[0]; mes = parts[1]; dia = parts[2];
-                } else {
-                    const parts = l.DIA.split('/');
-                    dia = parts[0]; mes = parts[1]; ano = parts[2];
-                }
-
+                if (l.DIA.includes('-')) { const pts = l.DIA.split('-'); ano = pts[0]; mes = pts[1]; dia = pts[2]; } 
+                else { const pts = l.DIA.split('/'); dia = pts[0]; mes = pts[1]; ano = pts[2]; }
                 if(!ano || !mes) return;
-
                 const chaveSort = `${ano}${mes.toString().padStart(2, '0')}`; 
                 const chaveNome = `${ano} - ${mesesNomes[parseInt(mes)-1]}`;
-                
                 if(!grupos[chaveSort]) grupos[chaveSort] = { nome: chaveNome, p: {}, pagos: [], tp: 0, trec: 0 };
-                
                 const v = fixVal(l.TOTAL);
                 if(l.PAGAMENTO !== 'PAGO') {
                     const emp = l.EMPRESA || 'Outros'; 
                     if(!grupos[chaveSort].p[emp]) grupos[chaveSort].p[emp] = { total: 0, chamados: [], ids: [] };
-                    grupos[chaveSort].p[emp].total += v; 
-                    grupos[chaveSort].p[emp].chamados.push(l); 
-                    grupos[chaveSort].p[emp].ids.push(l.id); 
-                    grupos[chaveSort].tp += v;
-                } else { 
-                    grupos[chaveSort].pagos.push(l); 
-                    grupos[chaveSort].trec += v; 
-                }
+                    grupos[chaveSort].p[emp].total += v; grupos[chaveSort].p[emp].chamados.push(l); grupos[chaveSort].p[emp].ids.push(l.id); grupos[chaveSort].tp += v;
+                } else { grupos[chaveSort].pagos.push(l); grupos[chaveSort].trec += v; }
             });
 
             let headerHTML = `
@@ -346,16 +343,12 @@
                         <button onclick="filterFechamento('PAGOS')" class="px-6 py-2 rounded-xl text-[10px] font-black transition-all ${filtroFechamento === 'PAGOS' ? 'btn-glass-purple text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}">PAGOS</button>
                     </div>
                 </div>`;
-
             container.innerHTML = headerHTML;
-            
             Object.keys(grupos).sort((a,b) => b - a).forEach(mKey => {
                 const g = grupos[mKey];
                 const temPendentes = Object.keys(g.p).length > 0;
                 const temPagos = g.pagos.length > 0;
-
                 if ((filtroFechamento === 'PENDENTES' && !temPendentes) || (filtroFechamento === 'PAGOS' && !temPagos)) return;
-
                 let htmlMês = `<div class="space-y-8 mt-12">
                     <div class="glass p-6 rounded-3xl border-l-8 border-purple-600 flex flex-col md:flex-row justify-between items-center shadow-2xl gap-4">
                         <div><h3 class="text-sm font-black text-slate-100 uppercase tracking-widest">${g.nome}</h3></div>
@@ -364,100 +357,134 @@
                             <div><span class="text-[9px] font-bold text-slate-400 uppercase block">Pendente</span><span class="text-lg md:text-2xl font-black text-purple-400 italic">${formatarParaDB(g.tp)}</span></div>
                         </div>
                     </div>`;
-
                 if (filtroFechamento !== 'PAGOS' && temPendentes) {
                     htmlMês += `<div class="grid grid-cols-1 md:grid-cols-3 gap-6">`;
                     Object.keys(g.p).forEach(e => {
                         const info = g.p[e], c = configs?.find(x => x.nome_empresa === e);
                         htmlMês += `<div class="glass p-6 rounded-3xl card-pendente-moldura flex flex-col justify-between shadow-xl">
-                            <div>
-                                <h4 class="font-black text-white text-[10px] uppercase mb-4 border-b border-white/10 pb-2 tracking-widest">${e}</h4>
-                                <div class="space-y-2 mb-6">${info.chamados.map(i => `
-                                    <div class="flex justify-between items-start text-[9px] border-b border-white/5 pb-1">
-                                        <div class="text-slate-400 font-bold">${i.DIA}</div>
-                                        <div class="font-black text-white italic">${exibirMoeda(i.TOTAL)}</div>
-                                    </div>`).join('')}
-                                </div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between items-center mb-4 px-2">
-                                    <span class="text-[9px] font-black text-red-500 uppercase">Total:</span>
-                                    <span class="text-xl font-black text-purple-400 italic">${formatarParaDB(info.total)}</span>
-                                </div>
-                                <button onclick="marcarComoPago([${info.ids}])" class="w-full bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-emerald-500 hover:text-white transition-all mb-4">RECEBI PAGAMENTO</button>
-                                <div class="text-[8px] text-slate-500 bg-black/40 p-3 rounded-2xl border border-white/5 space-y-1 text-left font-bold uppercase">
-                                    <p>📧 Email: <span class="text-white">${c?.email_fechamento || '---'}</span></p>
-                                    <p>⏳ Prazo: <span class="text-white">${c?.prazo_envio || '---'}</span></p>
-                                </div>
-                            </div>
-                        </div>`;
+                            <div><h4 class="font-black text-white text-[10px] uppercase mb-4 border-b border-white/10 pb-2 tracking-widest">${e}</h4>
+                            <div class="space-y-2 mb-6">${info.chamados.map(i => `<div class="flex justify-between items-start text-[9px] border-b border-white/5 pb-1"><div class="text-slate-400 font-bold">${i.DIA}</div><div class="font-black text-white italic">${exibirMoeda(i.TOTAL)}</div></div>`).join('')}</div></div>
+                            <div><div class="flex justify-between items-center mb-4 px-2"><span class="text-[9px] font-black text-red-500 uppercase">Total:</span><span class="text-xl font-black text-purple-400 italic">${formatarParaDB(info.total)}</span></div>
+                            <button onclick="marcarComoPago([${info.ids}])" class="w-full bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-emerald-500 hover:text-white transition-all mb-4">RECEBI PAGAMENTO</button>
+                            <div class="text-[8px] text-slate-500 bg-black/40 p-3 rounded-2xl border border-white/5 space-y-1 text-left font-bold uppercase"><p>📧 Email: <span class="text-white">${c?.email_fechamento || '---'}</span></p><p>⏳ Prazo: <span class="text-white">${c?.prazo_envio || '---'}</span></p></div></div></div>`;
                     });
                     htmlMês += `</div>`;
                 }
-
                 if (filtroFechamento !== 'PENDENTES' && temPagos) {
-                    htmlMês += `
-                    <div class="w-full bg-emerald-500/5 rounded-3xl p-8 border border-emerald-500/10 mt-6">
-                        <div class="flex justify-between items-center mb-6 uppercase border-b border-emerald-500/20 pb-4">
-                            <h5 class="text-[11px] font-black text-emerald-500 italic tracking-widest flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                                Histórico de Recebimentos
-                            </h5>
-                            <span class="text-[10px] font-black text-emerald-600 italic">Mês Liquidado: ${formatarParaDB(g.trec)}</span>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-8 gap-y-4">
-                            ${g.pagos.map(p => `
-                                <div class="flex justify-between items-center text-[10px] border-b border-white/5 pb-2 hover:bg-white/5 transition-colors px-2">
-                                    <span class="font-bold text-slate-400 uppercase truncate mr-2">${p.EMPRESA}</span>
-                                    <span class="font-black text-emerald-400 italic whitespace-nowrap">${exibirMoeda(p.TOTAL)}</span>
-                                </div>`).join('')}
-                        </div>
-                    </div>`;
+                    htmlMês += `<div class="w-full bg-emerald-500/5 rounded-3xl p-8 border border-emerald-500/10 mt-6"><div class="flex justify-between items-center mb-6 uppercase border-b border-emerald-500/20 pb-4">
+                            <h5 class="text-[11px] font-black text-emerald-500 italic tracking-widest flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>Histórico de Recebimentos</h5>
+                            <span class="text-[10px] font-black text-emerald-600 italic">Mês Liquidado: ${formatarParaDB(g.trec)}</span></div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-8 gap-y-4">${g.pagos.map(p => `<div class="flex justify-between items-center text-[10px] border-b border-white/5 pb-2 hover:bg-white/5 transition-colors px-2"><span class="font-bold text-slate-400 uppercase truncate mr-2">${p.EMPRESA}</span><span class="font-black text-emerald-400 italic whitespace-nowrap">${exibirMoeda(p.TOTAL)}</span></div>`).join('')}</div></div>`;
                 }
-
-                htmlMês += `</div>`;
-                container.innerHTML += htmlMês;
+                htmlMês += `</div>`; container.innerHTML += htmlMês;
             });
         }
 
-        async function marcarComoPago(ids) { if(confirm("Confirmar recebimento de todos os chamados desta empresa?")) { await supabaseClient.from('atendimentos').update({ PAGAMENTO: 'PAGO' }).in('id', ids); carregarFechamentoFinal(); } }
+        async function marcarComoPago(ids) { if(confirm("Confirmar recebimento?")) { await supabaseClient.from('atendimentos').update({ PAGAMENTO: 'PAGO' }).in('id', ids); await carregarFechamentoFinal(); } }
         
         document.getElementById('formAtendimento').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const dInput = document.getElementById('DIA').value;
-            const dParts = dInput.split('-');
+            const dpts = document.getElementById('DIA').value.split('-');
             const v = fixVal(document.getElementById('VALOR').value), ex = fixVal(document.getElementById('EXTRA').value), al = fixVal(document.getElementById('ALIM').value), tr = fixVal(document.getElementById('TRANSP').value);
             const totalNum = v+ex+al+tr;
             const payload = {
-                TIPO: tipoAtual, DIA: `${dParts[2]}/${dParts[1]}/${dParts[0]}`, EMPRESA: document.getElementById('EMPRESA').value.toUpperCase(), "INTERMÉDIO": document.getElementById('INTERMEDIO').value.toUpperCase(), Local: document.getElementById('Local').value.toUpperCase(), RAT: document.getElementById('RAT').value, "DESCRIÇÃO": document.getElementById('DESCRICAO').value,
-                VALOR: formatarParaDB(v), EXTRA: formatarParaDB(ex), ALIM: formatarParaDB(al), TRANSP: formatarParaDB(tr), TOTAL: formatarParaDB(totalNum), PAGAMENTO: tipoAtual === 'Saída' ? 'SAÍDA' : 'NÃO PAGO', "Mês": parseInt(dParts[1]), "ANO": parseInt(dParts[0])
+                TIPO: tipoAtual, DIA: `${dpts[2]}/${dpts[1]}/${dpts[0]}`, EMPRESA: document.getElementById('EMPRESA').value.toUpperCase(), "INTERMÉDIO": document.getElementById('INTERMEDIO').value.toUpperCase(), Local: document.getElementById('Local').value.toUpperCase(), RAT: document.getElementById('RAT').value, "DESCRIÇÃO": document.getElementById('DESCRICAO').value,
+                VALOR: formatarParaDB(v), EXTRA: formatarParaDB(ex), ALIM: formatarParaDB(al), TRANSP: formatarParaDB(tr), TOTAL: formatarParaDB(totalNum), PAGAMENTO: tipoAtual === 'Saída' ? 'SAÍDA' : 'NÃO PAGO', "Mês": parseInt(dpts[1]), "ANO": parseInt(dpts[0])
             };
             const { error } = await supabaseClient.from('atendimentos').insert([payload]);
             if(!error) location.reload(); else alert("Erro!");
         });
 
+        // --- DASHBOARD LOGIC ---
+
         async function renderCharts() {
-            const { data } = await supabaseClient.from('atendimentos').select('*'); if(!data) return;
-            const entradas = new Array(12).fill(0), saidas = new Array(12).fill(0), eMap = {};
-            data.forEach(d => {
-                if(!d.DIA) return;
-                let mes;
-                if (d.DIA.includes('-')) { mes = parseInt(d.DIA.split('-')[1]); }
-                else { mes = parseInt(d.DIA.split('/')[1]); }
-                const mIdx = mes - 1, v = fixVal(d.TOTAL);
-                if(mIdx >= 0 && mIdx < 12) { 
-                    if(d.TIPO === 'Entrada') { 
-                        entradas[mIdx] += v; 
-                        if(d.EMPRESA) eMap[d.EMPRESA] = (eMap[d.EMPRESA] || 0) + v; 
-                    } else saidas[mIdx] += v; 
+            const anoSel = document.getElementById('filtroAnoDash').value;
+            const mesSel = document.getElementById('filtroMesDash').value;
+            
+            const { data } = await supabaseClient.from('atendimentos').select('*');
+            if(!data) return;
+
+            // Limpar gráficos antigos
+            if(chart1) chart1.destroy(); if(chart2) chart2.destroy();
+
+            let labels = [], ganhos = [], gastos = [], eMap = {};
+
+            if (mesSel === 'TODOS') {
+                labels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+                ganhos = new Array(12).fill(0); gastos = new Array(12).fill(0);
+                data.forEach(d => {
+                    let dAno, dMes;
+                    if(d.DIA.includes('-')) { const p = d.DIA.split('-'); dAno = p[0]; dMes = parseInt(p[1]); }
+                    else { const p = d.DIA.split('/'); dAno = p[2]; dMes = parseInt(p[1]); }
+                    
+                    if(dAno == anoSel) {
+                        const mIdx = dMes - 1;
+                        const v = fixVal(d.TOTAL);
+                        if(d.TIPO === 'Entrada') { ganhos[mIdx] += v; eMap[d.EMPRESA] = (eMap[d.EMPRESA] || 0) + v; }
+                        else { gastos[mIdx] += v; }
+                    }
+                });
+            } else {
+                // Modo Mensal: Exibir dias 1 a 31
+                const diasNoMes = new Date(anoSel, mesSel, 0).getDate();
+                labels = Array.from({length: diasNoMes}, (_, i) => i + 1);
+                ganhos = new Array(diasNoMes).fill(0); gastos = new Array(diasNoMes).fill(0);
+                data.forEach(d => {
+                    let dAno, dMes, dDia;
+                    if(d.DIA.includes('-')) { const p = d.DIA.split('-'); dAno = p[0]; dMes = parseInt(p[1]); dDia = parseInt(p[2]); }
+                    else { const p = d.DIA.split('/'); dAno = p[2]; dMes = parseInt(p[1]); dDia = parseInt(p[0]); }
+                    
+                    if(dAno == anoSel && dMes == mesSel) {
+                        const dIdx = dDia - 1;
+                        const v = fixVal(d.TOTAL);
+                        if(d.TIPO === 'Entrada') { ganhos[dIdx] += v; eMap[d.EMPRESA] = (eMap[d.EMPRESA] || 0) + v; }
+                        else { gastos[dIdx] += v; }
+                    }
+                });
+            }
+
+            // Gráfico 1: Fluxo (COLUNAS)
+            const ctx1 = document.getElementById('chartFluxo').getContext('2d');
+            chart1 = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Ganhos', data: ganhos, backgroundColor: '#10b981', borderRadius: 6 },
+                        { label: 'Gastos', data: gastos, backgroundColor: '#ef4444', borderRadius: 6 }
+                    ]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#f1f5f9', font: { weight: 'bold' } } } },
+                    scales: { 
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
+                    }
                 }
             });
-            new Chart(document.getElementById('chartFluxo'), { type: 'line', data: { labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"], datasets: [{ label: 'Ganhos', data: entradas, borderColor: '#10b981', tension: 0.4, fill: true, backgroundColor: 'rgba(16, 185, 129, 0.1)' }, { label: 'Gastos', data: saidas, borderColor: '#ef4444', tension: 0.4, fill: true, backgroundColor: 'rgba(239, 68, 68, 0.1)' }] }, options: { scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } } } } });
-            const top = Object.entries(eMap).sort((a,b) => b[1]-a[1]).slice(0, 5);
-            new Chart(document.getElementById('chartEmpresas'), { type: 'doughnut', data: { labels: top.map(x => x[0]), datasets: [{ data: top.map(x => x[1]), backgroundColor: ['#a855f7', '#10b981', '#f59e0b', '#ef4444', '#3b82f6'], borderWidth: 0 }] } });
+
+            // Gráfico 2: Empresas (ROSCA)
+            const topEmp = Object.entries(eMap).sort((a,b) => b[1]-a[1]).slice(0, 7);
+            const ctx2 = document.getElementById('chartEmpresas').getContext('2d');
+            chart2 = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: topEmp.map(x => x[0]),
+                    datasets: [{ data: topEmp.map(x => x[1]), backgroundColor: ['#a855f7', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#ec4899', '#06b6d4'], borderWidth: 0 }]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { color: '#f1f5f9', padding: 20, font: { size: 10, weight: 'bold' } } },
+                        title: { display: true, text: 'FATURAMENTO POR EMPRESA', color: '#a855f7', font: { weight: '800' } }
+                    },
+                    cutout: '70%'
+                }
+            });
         }
 
-        window.onload = () => showTab('lancamentos', document.querySelector('.tab-btn'));
+        window.onload = () => carregarLancamentos();
     </script>
 </body>
 </html>
