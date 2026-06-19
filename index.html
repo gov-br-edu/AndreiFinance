@@ -99,7 +99,7 @@
 
             <div class="lg:col-span-3 flex flex-col gap-4">
                 <div class="glass p-2 rounded-2xl">
-                    <input type="text" id="inputBusca" onkeyup="filtrarLancamentos()" placeholder="Pesquisar por empresa, data ou RAT..." class="w-full bg-transparent border-none outline-none text-base p-6 placeholder:text-slate-500">
+                    <input type="text" id="inputBusca" onkeyup="filtrarLancamentos()" placeholder="Pesquisar por empresa, data ou RAT..." class="w-full bg-transparent border-none outline-none text-base p-4 placeholder:text-slate-500">
                 </div>
                 <div class="glass rounded-3xl overflow-hidden">
                     <div class="table-container">
@@ -278,10 +278,21 @@
             
             lancamentos.forEach(l => {
                 if(!l.DIA) return;
-                const p = l.DIA.split('/');
-                const a = p[2], m = p[1];
-                const chaveSort = `${a}${m}`; 
-                const chaveNome = `${a} - ${mesesNomes[parseInt(m)-1]}`;
+                
+                let dia, mes, ano;
+                // Parsing inteligente de data (hífen ou barra)
+                if (l.DIA.includes('-')) {
+                    const parts = l.DIA.split('-');
+                    ano = parts[0]; mes = parts[1]; dia = parts[2];
+                } else {
+                    const parts = l.DIA.split('/');
+                    dia = parts[0]; mes = parts[1]; ano = parts[2];
+                }
+
+                if(!ano || !mes) return;
+
+                const chaveSort = `${ano}${mes.toString().padStart(2, '0')}`; 
+                const chaveNome = `${ano} - ${mesesNomes[parseInt(mes)-1]}`;
                 
                 if(!grupos[chaveSort]) grupos[chaveSort] = { nome: chaveNome, p: {}, pagos: [], tp: 0, trec: 0 };
                 
@@ -311,7 +322,6 @@
 
             container.innerHTML = headerHTML;
             
-            // Ordena chaves do mês decrescente
             Object.keys(grupos).sort((a,b) => b - a).forEach(mKey => {
                 const g = grupos[mKey];
                 const temPendentes = Object.keys(g.p).length > 0;
@@ -403,9 +413,18 @@
             const entradas = new Array(12).fill(0), saidas = new Array(12).fill(0), eMap = {};
             data.forEach(d => {
                 if(!d.DIA) return;
-                const p = d.DIA.split('/');
-                const m = parseInt(p[1]) - 1, v = fixVal(d.TOTAL);
-                if(m >= 0 && m < 12) { if(d.TIPO === 'Entrada') { entradas[m] += v; if(d.EMPRESA) eMap[d.EMPRESA] = (eMap[d.EMPRESA] || 0) + v; } else saidas[m] += v; }
+                
+                let mes;
+                if (d.DIA.includes('-')) { mes = parseInt(d.DIA.split('-')[1]); }
+                else { mes = parseInt(d.DIA.split('/')[1]); }
+                
+                const mIdx = mes - 1, v = fixVal(d.TOTAL);
+                if(mIdx >= 0 && mIdx < 12) { 
+                    if(d.TIPO === 'Entrada') { 
+                        entradas[mIdx] += v; 
+                        if(d.EMPRESA) eMap[d.EMPRESA] = (eMap[d.EMPRESA] || 0) + v; 
+                    } else saidas[mIdx] += v; 
+                }
             });
             new Chart(document.getElementById('chartFluxo'), { type: 'line', data: { labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"], datasets: [{ label: 'Ganhos', data: entradas, borderColor: '#10b981', tension: 0.4, fill: true, backgroundColor: 'rgba(16, 185, 129, 0.1)' }, { label: 'Gastos', data: saidas, borderColor: '#ef4444', tension: 0.4, fill: true, backgroundColor: 'rgba(239, 68, 68, 0.1)' }] }, options: { scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } } } } });
             const top = Object.entries(eMap).sort((a,b) => b[1]-a[1]).slice(0, 5);
