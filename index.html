@@ -152,35 +152,23 @@
         let dadosCompletos = [], itemSendoEditado = null, editMode = false, tipoAtual = 'Entrada';
         const mesesNomes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
-        // --- FUNÇÕES DE MOEDA ---
-        
-        // Transforma string "R$ 1.200,50" ou "1200.50" em número real
         function fixVal(v) {
             if (!v) return 0;
             let str = v.toString().replace("R$", "").replace(/\s/g, "");
-            // Se tiver vírgula e ponto, remove o ponto (milhar) e troca vírgula por ponto (decimal)
-            if (str.includes(',') && str.includes('.')) {
-                str = str.replace(/\./g, "").replace(",", ".");
-            } else {
-                // Se tiver apenas vírgula, assume que é decimal
-                str = str.replace(",", ".");
-            }
+            if (str.includes(',') && str.includes('.')) { str = str.replace(/\./g, "").replace(",", "."); } 
+            else { str = str.replace(",", "."); }
             return parseFloat(str) || 0;
         }
 
-        // Formata número para string de banco de dados "R$ 1.200,50"
         function formatarParaDB(num) {
             return "R$ " + num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
-        // Exibe na tela limpando duplicidade
         function exibirMoeda(v) {
             if (!v) return "R$ 0,00";
             let limpo = v.toString().replace("R$", "").trim();
             return "R$ " + limpo;
         }
-
-        // --- LÓGICA DE TABELA E FILTROS ---
 
         function normalizar(t) { return t ? t.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : ""; }
 
@@ -201,8 +189,6 @@
             const t = normalizar(document.getElementById('inputBusca').value);
             renderizarTabela(dadosCompletos.filter(d => normalizar(d.DIA).includes(t) || normalizar(d.EMPRESA).includes(t) || normalizar(d.RAT).includes(t) || normalizar(d.Local).includes(t) || normalizar(d["INTERMÉDIO"]).includes(t) || d.TOTAL.toString().includes(t)));
         }
-
-        // --- MODAL E EDIÇÃO ---
 
         async function abrirDetalhesDeFila(id) {
             itemSendoEditado = dadosCompletos.find(x => x.id === id); editMode = false;
@@ -249,8 +235,6 @@
         function toggleEditMode() { editMode = !editMode; document.getElementById('modalFooter').classList.toggle('hidden', !editMode); renderizarModalBody(); }
         function fecharModal() { document.getElementById('modalDetalhes').style.display = "none"; editMode = false; }
 
-        // --- FECHAMENTO E ABAS ---
-
         function showTab(tabId, btn) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
             document.getElementById('tab-' + tabId).classList.remove('hidden');
@@ -266,6 +250,7 @@
             const { data: lancamentos } = await supabaseClient.from('atendimentos').select('*').eq('TIPO', 'Entrada');
             const { data: configs } = await supabaseClient.from('empresas_config').select('*');
             const grupos = {};
+            
             lancamentos.forEach(l => {
                 if(!l.DIA) return;
                 const p = l.DIA.includes('-') ? l.DIA.split('-') : l.DIA.split('/');
@@ -278,16 +263,73 @@
                     grupos[chave].p[emp].total += v; grupos[chave].p[emp].chamados.push(l); grupos[chave].p[emp].ids.push(l.id); grupos[chave].tp += v;
                 } else { grupos[chave].pagos.push(l); grupos[chave].trec += v; }
             });
+
             container.innerHTML = '<h2 class="text-xl font-black text-purple-400 italic border-b border-white/10 pb-4 uppercase tracking-tighter">Fechamentos Inteligentes</h2>';
+            
             Object.keys(grupos).sort((a,b) => b.localeCompare(a)).forEach(m => {
                 const g = grupos[m];
-                let h = `<div class="space-y-8 mt-10"><div class="glass p-6 rounded-3xl border-l-8 border-purple-600 flex flex-col md:flex-row justify-between items-center shadow-2xl gap-4"><div><h3 class="text-sm font-black text-slate-100 uppercase tracking-widest">${m}</h3></div><div class="flex gap-10 text-right"><div><span class="text-[9px] font-bold text-slate-400 uppercase block">Recebido</span><span class="text-lg md:text-2xl font-black text-emerald-400 italic">${formatarParaDB(g.trec)}</span></div><div><span class="text-[9px] font-bold text-slate-400 uppercase block">Pendente</span><span class="text-lg md:text-2xl font-black text-purple-400 italic">${formatarParaDB(g.tp)}</span></div></div></div><div class="grid grid-cols-1 md:grid-cols-3 gap-6">`;
+                // Início do container do mês
+                let htmlMês = `<div class="space-y-8 mt-10">
+                    <div class="glass p-6 rounded-3xl border-l-8 border-purple-600 flex flex-col md:flex-row justify-between items-center shadow-2xl gap-4">
+                        <div><h3 class="text-sm font-black text-slate-100 uppercase tracking-widest">${m}</h3></div>
+                        <div class="flex gap-10 text-right">
+                            <div><span class="text-[9px] font-bold text-slate-400 uppercase block">Recebido</span><span class="text-lg md:text-2xl font-black text-emerald-400 italic">${formatarParaDB(g.trec)}</span></div>
+                            <div><span class="text-[9px] font-bold text-slate-400 uppercase block">Pendente</span><span class="text-lg md:text-2xl font-black text-purple-400 italic">${formatarParaDB(g.tp)}</span></div>
+                        </div>
+                    </div>`;
+
+                // --- PARTE 1: GRID DE PENDENTES (Cards menores) ---
+                htmlMês += `<div class="grid grid-cols-1 md:grid-cols-3 gap-6">`;
                 Object.keys(g.p).forEach(e => {
                     const info = g.p[e], c = configs?.find(x => x.nome_empresa === e);
-                    h += `<div class="glass p-6 rounded-3xl card-pendente-moldura flex flex-col justify-between shadow-xl"><div><h4 class="font-black text-white text-[10px] uppercase mb-4 border-b border-white/10 pb-2 tracking-widest">${e}</h4><div class="space-y-2 mb-6">${info.chamados.map(i => `<div class="flex justify-between items-start text-[9px] border-b border-white/5 pb-1"><div class="text-slate-400 font-bold">${i.DIA}</div><div class="font-black text-white italic">${exibirMoeda(i.TOTAL)}</div></div>`).join('')}</div></div><div><div class="flex justify-between items-center mb-4 px-2"><span class="text-[9px] font-black text-red-500 uppercase">Total:</span><span class="text-xl font-black text-purple-400 italic">${formatarParaDB(info.total)}</span></div><button onclick="marcarComoPago([${info.ids}])" class="w-full bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-emerald-500 transition-all mb-4">RECEBI PAGAMENTO</button><div class="text-[8px] text-slate-500 bg-black/40 p-3 rounded-2xl border border-white/5 space-y-1 text-left font-bold uppercase"><p>📧 Email: <span class="text-white">${c?.email_fechamento || '---'}</span></p><p>⏳ Prazo: <span class="text-white">${c?.prazo_envio || '---'}</span></p></div></div></div>`;
+                    htmlMês += `<div class="glass p-6 rounded-3xl card-pendente-moldura flex flex-col justify-between shadow-xl">
+                        <div>
+                            <h4 class="font-black text-white text-[10px] uppercase mb-4 border-b border-white/10 pb-2 tracking-widest">${e}</h4>
+                            <div class="space-y-2 mb-6">${info.chamados.map(i => `
+                                <div class="flex justify-between items-start text-[9px] border-b border-white/5 pb-1">
+                                    <div class="text-slate-400 font-bold">${i.DIA}</div>
+                                    <div class="font-black text-white italic">${exibirMoeda(i.TOTAL)}</div>
+                                </div>`).join('')}
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-4 px-2">
+                                <span class="text-[9px] font-black text-red-500 uppercase">Total:</span>
+                                <span class="text-xl font-black text-purple-400 italic">${formatarParaDB(info.total)}</span>
+                            </div>
+                            <button onclick="marcarComoPago([${info.ids}])" class="w-full bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-emerald-500 hover:text-white transition-all mb-4">RECEBI PAGAMENTO</button>
+                            <div class="text-[8px] text-slate-500 bg-black/40 p-3 rounded-2xl border border-white/5 space-y-1 text-left font-bold uppercase">
+                                <p>📧 Email: <span class="text-white">${c?.email_fechamento || '---'}</span></p>
+                                <p>⏳ Prazo: <span class="text-white">${c?.prazo_envio || '---'}</span></p>
+                            </div>
+                        </div>
+                    </div>`;
                 });
-                if(g.pagos.length > 0) h += `<div class="w-full bg-emerald-500/5 rounded-3xl p-6 border border-emerald-500/10 mt-6"><div class="flex justify-between mb-4 uppercase"><h5 class="text-[9px] font-black text-emerald-500 italic underline tracking-widest">✔ Histórico de Recebimentos</h5><span class="text-[10px] font-black text-emerald-600 italic">Mês Liquidado: ${formatarParaDB(g.trec)}</span></div><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">${g.pagos.map(p => `<div class="flex justify-between items-center text-[9px] border-b border-white/5 pb-1"><span class="text-[9px] font-bold text-slate-500 uppercase">${p.EMPRESA}</span><span class="font-black text-emerald-400 italic text-xs">${exibirMoeda(p.TOTAL)}</span></div>`).join('')}</div></div>`;
-                container.innerHTML += h + `</div></div>`;
+                htmlMês += `</div>`; // Fecha o grid de pendentes
+
+                // --- PARTE 2: LISTA DE PAGOS (Largura Total) ---
+                if(g.pagos.length > 0) {
+                    htmlMês += `
+                    <div class="w-full bg-emerald-500/5 rounded-3xl p-8 border border-emerald-500/10 mt-6">
+                        <div class="flex justify-between items-center mb-6 uppercase border-b border-emerald-500/20 pb-4">
+                            <h5 class="text-[11px] font-black text-emerald-500 italic tracking-widest flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                Histórico de Recebimentos
+                            </h5>
+                            <span class="text-[10px] font-black text-emerald-600 italic">Mês Liquidado: ${formatarParaDB(g.trec)}</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-8 gap-y-4">
+                            ${g.pagos.map(p => `
+                                <div class="flex justify-between items-center text-[10px] border-b border-white/5 pb-2 hover:bg-white/5 transition-colors px-2">
+                                    <span class="font-bold text-slate-400 uppercase truncate mr-2">${p.EMPRESA}</span>
+                                    <span class="font-black text-emerald-400 italic whitespace-nowrap">${exibirMoeda(p.TOTAL)}</span>
+                                </div>`).join('')}
+                        </div>
+                    </div>`;
+                }
+
+                htmlMês += `</div>`; // Fecha container do mês
+                container.innerHTML += htmlMês;
             });
         }
 
