@@ -225,10 +225,17 @@
         function popularFiltroAno() {
             const selectAno = document.getElementById('filtroAnoDash');
             if(selectAno.options.length > 0) return;
-            const anos = [...new Set(dadosCompletos.map(d => {
-                if (d.DIA.includes('-')) return d.DIA.split('-')[0];
-                return d.DIA.split('/')[2];
-            }))].sort((a,b) => b-a);
+            
+            const anosUnicos = new Set();
+            dadosCompletos.forEach(d => {
+                if (!d.DIA) return;
+                let ano;
+                if (d.DIA.includes('-')) ano = d.DIA.split('-')[0];
+                else ano = d.DIA.split('/')[2];
+                if (ano) anosUnicos.add(ano);
+            });
+
+            const anos = Array.from(anosUnicos).sort((a,b) => b-a);
             anos.forEach(ano => {
                 let opt = document.createElement('option'); opt.value = ano; opt.innerText = ano;
                 selectAno.appendChild(opt);
@@ -404,7 +411,6 @@
             const { data } = await supabaseClient.from('atendimentos').select('*');
             if(!data) return;
 
-            // Limpar gráficos antigos
             if(chart1) chart1.destroy(); if(chart2) chart2.destroy();
 
             let labels = [], ganhos = [], gastos = [], eMap = {};
@@ -413,6 +419,7 @@
                 labels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
                 ganhos = new Array(12).fill(0); gastos = new Array(12).fill(0);
                 data.forEach(d => {
+                    if (!d.DIA) return;
                     let dAno, dMes;
                     if(d.DIA.includes('-')) { const p = d.DIA.split('-'); dAno = p[0]; dMes = parseInt(p[1]); }
                     else { const p = d.DIA.split('/'); dAno = p[2]; dMes = parseInt(p[1]); }
@@ -425,11 +432,11 @@
                     }
                 });
             } else {
-                // Modo Mensal: Exibir dias 1 a 31
                 const diasNoMes = new Date(anoSel, mesSel, 0).getDate();
                 labels = Array.from({length: diasNoMes}, (_, i) => i + 1);
                 ganhos = new Array(diasNoMes).fill(0); gastos = new Array(diasNoMes).fill(0);
                 data.forEach(d => {
+                    if (!d.DIA) return;
                     let dAno, dMes, dDia;
                     if(d.DIA.includes('-')) { const p = d.DIA.split('-'); dAno = p[0]; dMes = parseInt(p[1]); dDia = parseInt(p[2]); }
                     else { const p = d.DIA.split('/'); dAno = p[2]; dMes = parseInt(p[1]); dDia = parseInt(p[0]); }
@@ -443,7 +450,6 @@
                 });
             }
 
-            // Gráfico 1: Fluxo (COLUNAS)
             const ctx1 = document.getElementById('chartFluxo').getContext('2d');
             chart1 = new Chart(ctx1, {
                 type: 'bar',
@@ -464,7 +470,6 @@
                 }
             });
 
-            // Gráfico 2: Empresas (ROSCA)
             const topEmp = Object.entries(eMap).sort((a,b) => b[1]-a[1]).slice(0, 7);
             const ctx2 = document.getElementById('chartEmpresas').getContext('2d');
             chart2 = new Chart(ctx2, {
