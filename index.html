@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finance Pro - Ultra Aurora Glass</title>
+    
+    <!-- MINIATURA DO SITE (FAVICON) -->
+    <link rel="icon" type="image/png" href="1781706422626.png">
+    <link rel="apple-touch-icon" href="1781706422626.png">
+    <!-- Meta tags para visualização em redes sociais -->
+    <meta property="og:image" content="1781706422626.png">
+    <meta name="twitter:image" content="1781706422626.png">
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -91,7 +99,7 @@
                         <div class="grid grid-cols-2 gap-3">
                             <input type="number" step="0.01" id="VALOR" placeholder="VALOR BASE" class="w-full p-3 text-xs uppercase">
                             <input type="number" step="0.01" id="EXTRA" placeholder="EXTRA" class="w-full p-3 text-xs uppercase">
-                            <input type="number" step="0.01" id="ALIM" placeholder="ALIM" class="w-full p-3 text-xs uppercase">
+                            <input type="number" step="0.01" id="MATERIAL" placeholder="MATERIAL" class="w-full p-3 text-xs uppercase">
                             <input type="number" step="0.01" id="TRANSP" placeholder="TRANSP" class="w-full p-3 text-xs uppercase">
                         </div>
                         <button type="submit" id="btnSalvar" class="w-full btn-glass-purple text-white py-3 rounded-2xl font-black uppercase text-[10px]">GRAVAR</button>
@@ -136,7 +144,6 @@
                     </select>
                 </div>
             </div>
-            <!-- Grid de Gráficos 2x2 -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div class="glass p-8 rounded-3xl min-h-[350px]"><canvas id="chartFluxo"></canvas></div>
                 <div class="glass p-8 rounded-3xl min-h-[350px]"><canvas id="chartEmpresas"></canvas></div>
@@ -286,18 +293,18 @@
                 <div class="grid grid-cols-4 gap-2 text-center text-[8px] font-black uppercase">
                     <div class="bg-white/5 p-2 rounded-xl">Base<br>${editMode ? `<input id="edit_val" class="edit-input !p-1 text-center" value="${fixVal(item.VALOR)}">` : `<span class="text-white text-xs">${exibirMoeda(item.VALOR)}</span>`}</div>
                     <div class="bg-white/5 p-2 rounded-xl">Extra<br>${editMode ? `<input id="edit_extra" class="edit-input !p-1 text-center" value="${fixVal(item.EXTRA)}">` : `<span class="text-white text-xs">${exibirMoeda(item.EXTRA)}</span>`}</div>
-                    <div class="bg-white/5 p-2 rounded-xl">Alim<br>${editMode ? `<input id="edit_alim" class="edit-input !p-1 text-center" value="${fixVal(item.ALIM)}">` : `<span class="text-white text-xs">${exibirMoeda(item.ALIM)}</span>`}</div>
+                    <div class="bg-white/5 p-2 rounded-xl">Material<br>${editMode ? `<input id="edit_material" class="edit-input !p-1 text-center" value="${fixVal(item.MATERIAL)}">` : `<span class="text-white text-xs">${exibirMoeda(item.MATERIAL)}</span>`}</div>
                     <div class="bg-white/5 p-2 rounded-xl">Transp<br>${editMode ? `<input id="edit_transp" class="edit-input !p-1 text-center" value="${fixVal(item.TRANSP)}">` : `<span class="text-white text-xs">${exibirMoeda(item.TRANSP)}</span>`}</div>
                 </div>
                 <div class="btn-glass-purple p-6 rounded-3xl flex justify-between items-center text-white"><span class="text-[10px] font-black opacity-60">Total Líquido</span><span class="text-2xl font-black italic">${exibirMoeda(item.TOTAL)}</span></div>`;
         }
 
         async function salvarAlteracoes() {
-            const v = fixVal(document.getElementById('edit_val').value), ex = fixVal(document.getElementById('edit_extra').value), al = fixVal(document.getElementById('edit_alim').value), tr = fixVal(document.getElementById('edit_transp').value);
+            const v = fixVal(document.getElementById('edit_val').value), ex = fixVal(document.getElementById('edit_extra').value), al = fixVal(document.getElementById('edit_material').value), tr = fixVal(document.getElementById('edit_transp').value);
             const totalNum = v + ex + al + tr;
             const updates = { 
                 EMPRESA: document.getElementById('edit_empresa').value.toUpperCase(), RAT: document.getElementById('edit_rat').value, "INTERMÉDIO": document.getElementById('edit_inter').value.toUpperCase(), Local: document.getElementById('edit_local').value.toUpperCase(), "DESCRIÇÃO": document.getElementById('edit_desc').value,
-                VALOR: formatarParaDB(v), EXTRA: formatarParaDB(ex), ALIM: formatarParaDB(al), TRANSP: formatarParaDB(tr), TOTAL: formatarParaDB(totalNum)
+                VALOR: formatarParaDB(v), EXTRA: formatarParaDB(ex), MATERIAL: formatarParaDB(al), TRANSP: formatarParaDB(tr), TOTAL: formatarParaDB(totalNum)
             };
             const { error } = await supabaseClient.from('atendimentos').update(updates).eq('id', itemSendoEditado.id);
             if (!error) { fecharModal(); await carregarLancamentos(); } else alert("Erro ao salvar!");
@@ -372,7 +379,11 @@
                             <div class="space-y-2 mb-6">${info.chamados.map(i => `<div class="flex justify-between items-start text-[9px] border-b border-white/5 pb-1"><div class="text-slate-400 font-bold">${i.DIA}</div><div class="font-black text-white italic">${exibirMoeda(i.TOTAL)}</div></div>`).join('')}</div></div>
                             <div><div class="flex justify-between items-center mb-4 px-2"><span class="text-[9px] font-black text-red-500 uppercase">Total:</span><span class="text-xl font-black text-purple-400 italic">${formatarParaDB(info.total)}</span></div>
                             <button onclick="marcarComoPago([${info.ids}])" class="w-full bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-emerald-500 hover:text-white transition-all mb-4">RECEBI PAGAMENTO</button>
-                            <div class="text-[8px] text-slate-500 bg-black/40 p-3 rounded-2xl border border-white/5 space-y-1 text-left font-bold uppercase"><p>📧 Email: <span class="text-white">${c?.email_fechamento || '---'}</span></p><p>⏳ Prazo: <span class="text-white">${c?.prazo_envio || '---'}</span></p></div></div></div>`;
+                            <div class="text-[8px] text-slate-500 bg-black/40 p-3 rounded-2xl border border-white/5 space-y-1 text-left font-bold uppercase">
+                                <p>📧 Email: <span class="text-white">${c?.email_fechamento || '---'}</span></p>
+                                <p>⏳ Prazo: <span class="text-white">${c?.prazo_envio || '---'}</span></p>
+                                <p>🛠️ Proc. Extra: <span class="text-white">${c?.procedimento_extra || '---'}</span></p>
+                            </div></div></div>`;
                     });
                     htmlMês += `</div>`;
                 }
@@ -391,31 +402,25 @@
         document.getElementById('formAtendimento').addEventListener('submit', async (e) => {
             e.preventDefault();
             const dpts = document.getElementById('DIA').value.split('-');
-            const v = fixVal(document.getElementById('VALOR').value), ex = fixVal(document.getElementById('EXTRA').value), al = fixVal(document.getElementById('ALIM').value), tr = fixVal(document.getElementById('TRANSP').value);
+            const v = fixVal(document.getElementById('VALOR').value), ex = fixVal(document.getElementById('EXTRA').value), al = fixVal(document.getElementById('MATERIAL').value), tr = fixVal(document.getElementById('TRANSP').value);
             const totalNum = v+ex+al+tr;
             const payload = {
                 TIPO: tipoAtual, DIA: `${dpts[2]}/${dpts[1]}/${dpts[0]}`, EMPRESA: document.getElementById('EMPRESA').value.toUpperCase(), "INTERMÉDIO": document.getElementById('INTERMEDIO').value.toUpperCase(), Local: document.getElementById('Local').value.toUpperCase(), RAT: document.getElementById('RAT').value, "DESCRIÇÃO": document.getElementById('DESCRICAO').value,
-                VALOR: formatarParaDB(v), EXTRA: formatarParaDB(ex), ALIM: formatarParaDB(al), TRANSP: formatarParaDB(tr), TOTAL: formatarParaDB(totalNum), PAGAMENTO: tipoAtual === 'Saída' ? 'SAÍDA' : 'NÃO PAGO', "Mês": parseInt(dpts[1]), "ANO": parseInt(dpts[0])
+                VALOR: formatarParaDB(v), EXTRA: formatarParaDB(ex), MATERIAL: formatarParaDB(al), TRANSP: formatarParaDB(tr), TOTAL: formatarParaDB(totalNum), PAGAMENTO: tipoAtual === 'Saída' ? 'SAÍDA' : 'NÃO PAGO', "Mês": parseInt(dpts[1]), "ANO": parseInt(dpts[0])
             };
             const { error } = await supabaseClient.from('atendimentos').insert([payload]);
             if(!error) location.reload(); else alert("Erro!");
         });
-
-        // --- DASHBOARD LOGIC ---
 
         async function renderCharts() {
             const anoSel = document.getElementById('filtroAnoDash').value;
             const mesSel = document.getElementById('filtroMesDash').value;
             const { data } = await supabaseClient.from('atendimentos').select('*');
             if(!data) return;
-
-            // Limpar gráficos
             if(chart1) chart1.destroy(); if(chart2) chart2.destroy(); if(chart3) chart3.destroy(); if(chart4) chart4.destroy();
-
             let labels = [], ganhos = [], gastos = [], eMap = {};
-            let compBase = 0, compExtra = 0, compAlim = 0, compTransp = 0;
+            let compBase = 0, compExtra = 0, compMaterial = 0, compTransp = 0;
             let statusPago = 0, statusPendente = 0;
-
             if (mesSel === 'TODOS') {
                 labels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
                 ganhos = new Array(12).fill(0); gastos = new Array(12).fill(0);
@@ -429,7 +434,7 @@
                         if(d.TIPO === 'Entrada') { 
                             ganhos[mIdx] += vTotal; 
                             eMap[d.EMPRESA] = (eMap[d.EMPRESA] || 0) + vTotal;
-                            compBase += fixVal(d.VALOR); compExtra += fixVal(d.EXTRA); compAlim += fixVal(d.ALIM); compTransp += fixVal(d.TRANSP);
+                            compBase += fixVal(d.VALOR); compExtra += fixVal(d.EXTRA); compMaterial += fixVal(d.MATERIAL); compTransp += fixVal(d.TRANSP);
                             if(d.PAGAMENTO === 'PAGO') statusPago += vTotal; else statusPendente += vTotal;
                         } else { gastos[mIdx] += vTotal; }
                     }
@@ -449,60 +454,30 @@
                         if(d.TIPO === 'Entrada') { 
                             ganhos[dIdx] += vTotal; 
                             eMap[d.EMPRESA] = (eMap[d.EMPRESA] || 0) + vTotal;
-                            compBase += fixVal(d.VALOR); compExtra += fixVal(d.EXTRA); compAlim += fixVal(d.ALIM); compTransp += fixVal(d.TRANSP);
+                            compBase += fixVal(d.VALOR); compExtra += fixVal(d.EXTRA); compMaterial += fixVal(d.MATERIAL); compTransp += fixVal(d.TRANSP);
                             if(d.PAGAMENTO === 'PAGO') statusPago += vTotal; else statusPendente += vTotal;
                         } else { gastos[dIdx] += vTotal; }
                     }
                 });
             }
-
-            // G1: Fluxo
             chart1 = new Chart(document.getElementById('chartFluxo').getContext('2d'), {
                 type: 'bar', data: { labels: labels, datasets: [{ label: 'Ganhos', data: ganhos, backgroundColor: '#10b981', borderRadius: 6 }, { label: 'Gastos', data: gastos, backgroundColor: '#ef4444', borderRadius: 6 }]},
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#f1f5f9' } } } }
             });
-
-            // G2: Empresas
             const topEmp = Object.entries(eMap).sort((a,b) => b[1]-a[1]).slice(0, 7);
             chart2 = new Chart(document.getElementById('chartEmpresas').getContext('2d'), {
                 type: 'doughnut', data: { labels: topEmp.map(x => x[0]), datasets: [{ data: topEmp.map(x => x[1]), backgroundColor: ['#a855f7', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#ec4899', '#06b6d4'], borderWidth: 0 }]},
                 options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'TOP EMPRESAS (R$)', color: '#a855f7' }, legend: { position: 'bottom', labels: { color: '#f1f5f9', font: { size: 9 } } } } }
             });
-
-            // G3: Composição (NOVO)
             chart3 = new Chart(document.getElementById('chartComposicao').getContext('2d'), {
-                type: 'polarArea',
-                data: {
-                    labels: ['Base', 'Extra', 'Alim', 'Transp'],
-                    datasets: [{ data: [compBase, compExtra, compAlim, compTransp], backgroundColor: ['rgba(168, 85, 247, 0.7)', 'rgba(16, 185, 129, 0.7)', 'rgba(245, 158, 11, 0.7)', 'rgba(59, 130, 246, 0.7)'], borderWidth: 0 }]
-                },
-                options: { 
-                    responsive: true, maintainAspectRatio: false, 
-                    plugins: { 
-                        title: { display: true, text: 'COMPOSIÇÃO DO FATURAMENTO', color: '#a855f7' },
-                        legend: { position: 'bottom', labels: { color: '#f1f5f9', font: { size: 10 } } }
-                    },
-                    scales: { r: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false } } }
-                }
+                type: 'polarArea', data: { labels: ['Base', 'Extra', 'Material', 'Transp'], datasets: [{ data: [compBase, compExtra, compMaterial, compTransp], backgroundColor: ['rgba(168, 85, 247, 0.7)', 'rgba(16, 185, 129, 0.7)', 'rgba(245, 158, 11, 0.7)', 'rgba(59, 130, 246, 0.7)'], borderWidth: 0 }]},
+                options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'COMPOSIÇÃO DO FATURAMENTO', color: '#a855f7' }, legend: { position: 'bottom', labels: { color: '#f1f5f9', font: { size: 10 } } } }, scales: { r: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false } } } }
             });
-
-            // G4: Status Recebíveis (NOVO)
             chart4 = new Chart(document.getElementById('chartStatusPagamento').getContext('2d'), {
-                type: 'pie',
-                data: {
-                    labels: ['Recebido (Pago)', 'Pendente'],
-                    datasets: [{ data: [statusPago, statusPendente], backgroundColor: ['#10b981', '#f59e0b'], borderWidth: 0 }]
-                },
-                options: { 
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { 
-                        title: { display: true, text: 'SAÚDE DOS RECEBÍVEIS', color: '#a855f7' },
-                        legend: { position: 'bottom', labels: { color: '#f1f5f9', font: { size: 10 } } }
-                    }
-                }
+                type: 'pie', data: { labels: ['Recebido (Pago)', 'Pendente'], datasets: [{ data: [statusPago, statusPendente], backgroundColor: ['#10b981', '#f59e0b'], borderWidth: 0 }]},
+                options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'SAÚDE DOS RECEBÍVEIS', color: '#a855f7' }, legend: { position: 'bottom', labels: { color: '#f1f5f9', font: { size: 10 } } } } }
             });
         }
-
         window.onload = () => carregarLancamentos();
     </script>
 </body>
