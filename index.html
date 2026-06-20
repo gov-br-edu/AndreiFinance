@@ -5,19 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finance Pro - Ultra Aurora Glass</title>
     
-    <!-- MINIATURA DO SITE -->
+    <!-- MINIATURA DO SITE (FAVICON) -->
     <link rel="icon" type="image/png" href="1781706422626.png">
     <link rel="apple-touch-icon" href="1781706422626.png">
+    <!-- Meta tags para visualização em redes sociais -->
     <meta property="og:image" content="1781706422626.png">
+    <meta name="twitter:image" content="1781706422626.png">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- OCR LIBRARIES -->
-    <script src="https://unpkg.com/tesseract.js@v5.0.2/dist/tesseract.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
 
@@ -30,7 +27,7 @@
         .btn-glass-purple { background: linear-gradient(135deg, rgba(168, 85, 247, 0.8), rgba(107, 33, 168, 0.8)); transition: 0.3s; }
 
         .tabs-container { position: relative; display: flex; background: rgba(0,0,0,0.4); padding: 4px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
-        .tab-indicator { position: absolute; height: calc(100% - 8px); top: 4px; left: 4px; border-radius: 12px; background: linear-gradient(135deg, #a855f7, #6b21a8); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1; opacity: 0; }
+        .tab-indicator { position: absolute; height: calc(100% - 8px); top: 4px; left: 4px; border-radius: 12px; background: linear-gradient(135deg, #a855f7, #6b21a8); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1; }
         .tab-btn { position: relative; z-index: 2; transition: color 0.3s; }
 
         input, textarea, select { 
@@ -56,44 +53,37 @@
         .circle-icon-btn:hover { background: rgba(255, 255, 255, 0.25); transform: scale(1.05); }
         .circle-icon-btn.btn-delete:hover { background: rgba(239, 68, 68, 0.4); border-color: #ef4444; }
         .edit-input { width: 100%; border: 1px solid #a855f7 !important; padding: 10px; font-size: 14px; }
-        
-        #loadingOCR { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
     </style>
 </head>
 <body>
 
-    <div id="loadingOCR">
-        <div class="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p id="ocrStatusText" class="font-black text-white uppercase tracking-widest text-[10px] animate-pulse">Iniciando leitura do RAT...</p>
+    <div class="bg-pattern">
+        <svg width="100%" height="100%" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+            <path d="M-100,200 C300,100 500,600 900,100" fill="none" stroke="#a855f7" stroke-width="6" opacity="0.2" />
+            <path d="M1100,800 C700,900 400,400 -100,800" fill="none" stroke="white" stroke-width="3" opacity="0.1" />
+            <path d="M200,1100 C500,700 800,900 1100,600" fill="none" stroke="#6b21a8" stroke-width="8" opacity="0.2" />
+            <path d="M0,500 C300,800 700,200 1000,500" fill="none" stroke="#a855f7" stroke-width="2" opacity="0.1" />
+            <path d="M-100,100 C200,400 800,0 1100,300" fill="none" stroke="white" stroke-width="2" opacity="0.05" />
+        </svg>
+        <div class="logo-central"></div>
     </div>
-
-    <div class="bg-pattern"><div class="logo-central"></div></div>
 
     <nav class="glass sticky top-0 z-50 px-4 h-20 border-b border-white/5 flex items-center">
         <div class="max-w-7xl mx-auto w-full flex justify-between items-center">
             <img src="1781706422626.png" class="h-14 w-14 rounded-xl object-cover">
             <div class="tabs-container">
                 <div id="tabIndicator" class="tab-indicator"></div>
-                <button id="btnTabLancamentos" onclick="showTab('lancamentos', this)" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-white">LANÇAMENTOS</button>
-                <button id="btnTabFechamento" onclick="showTab('fechamento', this)" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-slate-400">FECHAMENTO</button>
-                <button id="btnTabDashboard" onclick="showTab('dashboard', this)" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-slate-400">DASHBOARD</button>
+                <button onclick="showTab('lancamentos', this)" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-white">LANÇAMENTOS</button>
+                <button onclick="showTab('fechamento', this)" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-slate-400">FECHAMENTO</button>
+                <button onclick="showTab('dashboard', this)" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-slate-400">DASHBOARD</button>
             </div>
         </div>
     </nav>
 
     <main class="max-w-7xl mx-auto p-4 md:p-8">
-        <!-- GUIA LANÇAMENTOS -->
         <section id="tab-lancamentos" class="tab-content grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div class="lg:col-span-1">
                 <div class="glass p-6 rounded-3xl sticky top-28">
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="text-[10px] font-black text-purple-400">NOVO LANÇAMENTO</span>
-                        <button onclick="document.getElementById('inputAutoRAT').click()" class="bg-emerald-500/20 hover:bg-emerald-500 p-2 rounded-lg text-emerald-400 hover:text-white transition-all flex items-center gap-2 text-[9px] font-black border border-emerald-500/30 shadow-lg">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> AUTO RAT
-                        </button>
-                        <input type="file" id="inputAutoRAT" class="hidden" accept="image/*,.pdf" onchange="processarAutoRAT(this)">
-                    </div>
-                    
                     <form id="formAtendimento" class="space-y-4">
                         <div class="flex gap-2">
                             <button type="button" id="btnEntrada" onclick="setTipo('Entrada')" class="flex-1 py-2.5 rounded-xl font-black text-[10px] btn-glass-purple text-white">ENTRADA</button>
@@ -119,7 +109,9 @@
 
             <div class="lg:col-span-3 flex flex-col gap-4">
                 <div class="glass p-2 rounded-2xl flex items-center px-6">
-                    <svg class="w-5 h-5 text-slate-500 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <svg class="w-5 h-5 text-slate-500 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
                     <input type="text" id="inputBusca" onkeyup="filtrarLancamentos()" placeholder="Pesquisar por empresa, data ou RAT..." class="w-full bg-transparent border-none outline-none text-base p-4 placeholder:text-slate-500">
                 </div>
                 <div class="glass rounded-3xl overflow-hidden">
@@ -135,10 +127,9 @@
             </div>
         </section>
         
-        <!-- GUIA FECHAMENTO -->
         <section id="tab-fechamento" class="tab-content hidden space-y-12"></section>
 
-        <!-- GUIA DASHBOARD -->
+        <!-- DASHBOARD -->
         <section id="tab-dashboard" class="tab-content hidden flex flex-col gap-8">
             <div class="glass p-6 rounded-3xl flex flex-wrap items-center gap-6">
                 <h2 class="text-xl font-black text-purple-400 italic uppercase">Filtros Analíticos</h2>
@@ -146,10 +137,10 @@
                     <select id="filtroAnoDash" onchange="renderCharts()" class="p-3 text-xs font-bold uppercase min-w-[120px]"></select>
                     <select id="filtroMesDash" onchange="renderCharts()" class="p-3 text-xs font-bold uppercase min-w-[150px]">
                         <option value="TODOS">Todos os Meses</option>
-                        <option value="1">Jan</option><option value="2">Fev</option><option value="3">Mar</option>
-                        <option value="4">Abr</option><option value="5">Mai</option><option value="6">Jun</option>
-                        <option value="7">Jul</option><option value="8">Ago</option><option value="9">Set</option>
-                        <option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option>
+                        <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
+                        <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
+                        <option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option>
+                        <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
                     </select>
                 </div>
             </div>
@@ -169,15 +160,21 @@
                 <div id="modalHeader" class="p-6 flex justify-between items-center text-white border-b border-white/10 sticky top-0 z-20 backdrop-blur-xl">
                     <span id="modalStatusText" class="font-black uppercase text-[10px] opacity-60 tracking-widest">DETALHES</span>
                     <div class="flex items-center gap-3">
-                        <button id="modalBtnDelete" onclick="deletarLancamento()" class="circle-icon-btn btn-delete"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
-                        <button id="modalBtnEdit" onclick="toggleEditMode()" class="circle-icon-btn"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-width="2.5"/></svg></button>
+                        <button onclick="deletarLancamento()" class="circle-icon-btn btn-delete" title="Excluir Lançamento">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                        <button onclick="toggleEditMode()" class="circle-icon-btn" title="Editar Lançamento">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-width="2.5"/></svg>
+                        </button>
                         <button onclick="fecharModal()" class="text-4xl leading-none font-light ml-2">&times;</button>
                     </div>
                 </div>
                 <div id="modalBody" class="modal-body-scroll space-y-6"></div>
                 <div id="modalFooter" class="p-6 hidden flex justify-end gap-3 border-t border-white/10 bg-black/60 backdrop-blur-md">
-                    <button onclick="fecharModal()" class="px-5 py-2 text-xs font-bold text-slate-400">Cancelar</button>
-                    <button onclick="salvarAlteracoes()" id="modalConfirmBtn" class="px-8 py-2 bg-emerald-600 rounded-xl text-xs font-black uppercase text-white shadow-lg">Confirmar Alterações</button>
+                    <button onclick="toggleEditMode()" class="px-5 py-2 text-xs font-bold text-slate-400">Cancelar</button>
+                    <button onclick="salvarAlteracoes()" class="px-8 py-2 bg-emerald-600 rounded-xl text-xs font-black uppercase text-white shadow-lg">Confirmar Alterações</button>
                 </div>
             </div>
         </div>
@@ -187,276 +184,301 @@
         const SB_URL = "https://ctvnkjrpoyaancoxwles.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0dm5ranJwb3lhYW5jb3h3bGVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2NDA2OTYsImV4cCI6MjA5NzIxNjY5Nn0.SSY-ys7ZC2wqOdprejhYILJUzdXZjWkZ8upocSGqaQ8";
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
         let dadosCompletos = [], itemSendoEditado = null, editMode = false, tipoAtual = 'Entrada';
-        let filtroFechamento = 'TODOS', chart1, chart2, chart3, chart4, isAutoRAT = false;
+        let filtroFechamento = 'TODOS', chart1 = null, chart2 = null, chart3 = null, chart4 = null;
         const mesesNomes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
-        // --- UTILIDADES ---
-        const fixVal = v => { if(!v) return 0; let s = v.toString().replace("R$", "").replace(/\s/g, ""); return parseFloat(s.includes(',') && s.includes('.') ? s.replace(/\./g, "").replace(",", ".") : s.replace(",", ".")) || 0; };
-        const formatarParaDB = n => "R$ " + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        const exibirMoeda = v => v ? "R$ " + v.toString().replace("R$", "").trim() : "R$ 0,00";
-        const normalizar = t => t ? t.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
+        function fixVal(v) {
+            if (!v) return 0;
+            let str = v.toString().replace("R$", "").replace(/\s/g, "");
+            if (str.includes(',') && str.includes('.')) { str = str.replace(/\./g, "").replace(",", "."); } 
+            else { str = str.replace(",", "."); }
+            return parseFloat(str) || 0;
+        }
 
-        // --- NAVEGAÇÃO ---
+        function formatarParaDB(num) {
+            return "R$ " + num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function exibirMoeda(v) {
+            if (!v) return "R$ 0,00";
+            let limpo = v.toString().replace("R$", "").trim();
+            return "R$ " + limpo;
+        }
+
+        function normalizar(t) { return t ? t.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : ""; }
+
+        function setTipo(t) {
+            tipoAtual = t;
+            document.getElementById('TIPO').value = t;
+            const btnE = document.getElementById('btnEntrada');
+            const btnS = document.getElementById('btnSaida');
+            if(t === 'Entrada') {
+                btnE.className = "flex-1 py-2.5 rounded-xl font-black text-[10px] btn-glass-purple text-white";
+                btnS.className = "flex-1 py-2.5 rounded-xl font-black text-[10px] bg-black/20 text-slate-500";
+            } else {
+                btnS.className = "flex-1 py-2.5 rounded-xl font-black text-[10px] btn-glass-purple text-white";
+                btnE.className = "flex-1 py-2.5 rounded-xl font-black text-[10px] bg-black/20 text-slate-500";
+            }
+        }
+
+        async function carregarLancamentos() {
+            const { data, error } = await supabaseClient.from('atendimentos').select('*').order('id', { ascending: false });
+            if(!error) { 
+                dadosCompletos = data; 
+                renderizarTabela(data);
+                popularFiltroAno();
+            }
+        }
+
+        function popularFiltroAno() {
+            const selectAno = document.getElementById('filtroAnoDash');
+            if(selectAno.options.length > 0) return;
+            const anosUnicos = new Set();
+            dadosCompletos.forEach(d => {
+                if (!d.DIA) return;
+                let ano = d.DIA.includes('-') ? d.DIA.split('-')[0] : d.DIA.split('/')[2];
+                if (ano) anosUnicos.add(ano);
+            });
+            const anos = Array.from(anosUnicos).sort((a,b) => b-a);
+            anos.forEach(ano => {
+                let opt = document.createElement('option'); opt.value = ano; opt.innerText = ano;
+                selectAno.appendChild(opt);
+            });
+            if(anos.length > 0) selectAno.value = anos[0];
+        }
+
+        function renderizarTabela(dados) {
+            const lista = document.getElementById('listaLancamentos'); lista.innerHTML = '';
+            dados.forEach(d => {
+                let status = d.TIPO === 'Saída' ? "status-saida" : (d.PAGAMENTO === 'PAGO' ? "status-pago" : "status-naopago-tab");
+                lista.innerHTML += `<tr onclick="abrirDetalhesDeFila(${d.id})" class="hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors text-slate-300"><td class="p-5 ${status}"><div class="font-bold text-slate-100">${d.DIA}</div><div class="text-[9px] text-purple-400 font-bold uppercase">${d.HORA || ''}</div></td><td class="p-5"><div class="font-bold text-slate-200 uppercase leading-tight">${d.EMPRESA || '-'}</div><div class="text-[9px] text-purple-700 font-bold italic">${d.RAT || ''}</div></td><td class="p-5 text-right font-black ${d.TIPO === 'Saída' ? 'text-red-400' : 'text-emerald-400'}">${exibirMoeda(d.TOTAL)}</td></tr>`;
+            });
+        }
+
+        function filtrarLancamentos() {
+            const t = normalizar(document.getElementById('inputBusca').value);
+            renderizarTabela(dadosCompletos.filter(d => normalizar(d.DIA).includes(t) || normalizar(d.EMPRESA).includes(t) || normalizar(d.RAT).includes(t) || normalizar(d.Local).includes(t) || normalizar(d["INTERMÉDIO"]).includes(t) || d.TOTAL.toString().includes(t)));
+        }
+
+        async function abrirDetalhesDeFila(id) {
+            itemSendoEditado = dadosCompletos.find(x => x.id === id); editMode = false;
+            document.getElementById('modalFooter').classList.add('hidden');
+            renderizarModalBody();
+            document.getElementById('modalDetalhes').style.display = "block";
+        }
+
+        async function deletarLancamento() {
+            if(confirm("Deseja realmente excluir este lançamento?")) {
+                const { error } = await supabaseClient.from('atendimentos').delete().eq('id', itemSendoEditado.id);
+                if(!error) { fecharModal(); await carregarLancamentos(); } else { alert("Erro ao excluir!"); }
+            }
+        }
+
+        function renderizarModalBody() {
+            const item = itemSendoEditado; const body = document.getElementById('modalBody'); const head = document.getElementById('modalHeader');
+            let colorClass = item.TIPO === 'Saída' ? 'bg-red-500/80' : (item.PAGAMENTO === 'PAGO' ? 'bg-emerald-600/80' : 'bg-orange-500/80');
+            head.className = `p-6 flex justify-between items-center text-white border-b border-white/10 sticky top-0 z-20 backdrop-blur-xl ${colorClass}`;
+            body.innerHTML = `
+                <div class="grid grid-cols-2 gap-4 uppercase border-b border-white/10 pb-4">
+                    <div><label class="text-[9px] font-black text-purple-400">EMPRESA</label>${editMode ? `<input id="edit_empresa" class="edit-input" value="${item.EMPRESA || ''}">` : `<p class="font-black text-white text-base leading-tight">${item.EMPRESA || '-'}</p>`}</div>
+                    <div><label class="text-[9px] font-black text-purple-400">RAT</label>${editMode ? `<input id="edit_rat" class="edit-input" value="${item.RAT || ''}">` : `<p class="font-black text-purple-500 italic text-base font-mono">${item.RAT || '-'}</p>`}</div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 uppercase border-b border-white/10 pb-4">
+                    <div><label class="text-[9px] font-black text-purple-400">INTERMÉDIO</label>${editMode ? `<input id="edit_inter" class="edit-input" value="${item["INTERMÉDIO"] || ''}">` : `<p class="font-bold text-slate-200 text-sm">${item["INTERMÉDIO"] || '-'}</p>`}</div>
+                    <div><label class="text-[9px] font-black text-purple-400">LOCAL</label>${editMode ? `<input id="edit_local" class="edit-input" value="${item.Local || ''}">` : `<p class="font-bold text-slate-200 text-sm">${item.Local || '-'}</p>`}</div>
+                </div>
+                <div><label class="text-[9px] font-black text-purple-400 uppercase">Descrição</label>${editMode ? `<textarea id="edit_desc" class="edit-input h-24">${item["DESCRIÇÃO"] || ''}</textarea>` : `<div class="bg-black/40 p-4 rounded-xl italic text-slate-400 text-xs border border-white/5 leading-relaxed">"${item["DESCRIÇÃO"] || '---'}"</div>`}</div>
+                <div class="grid grid-cols-4 gap-2 text-center text-[8px] font-black uppercase">
+                    <div class="bg-white/5 p-2 rounded-xl">Base<br>${editMode ? `<input id="edit_val" class="edit-input !p-1 text-center" value="${fixVal(item.VALOR)}">` : `<span class="text-white text-xs">${exibirMoeda(item.VALOR)}</span>`}</div>
+                    <div class="bg-white/5 p-2 rounded-xl">Extra<br>${editMode ? `<input id="edit_extra" class="edit-input !p-1 text-center" value="${fixVal(item.EXTRA)}">` : `<span class="text-white text-xs">${exibirMoeda(item.EXTRA)}</span>`}</div>
+                    <div class="bg-white/5 p-2 rounded-xl">Material<br>${editMode ? `<input id="edit_material" class="edit-input !p-1 text-center" value="${fixVal(item.MATERIAL)}">` : `<span class="text-white text-xs">${exibirMoeda(item.MATERIAL)}</span>`}</div>
+                    <div class="bg-white/5 p-2 rounded-xl">Transp<br>${editMode ? `<input id="edit_transp" class="edit-input !p-1 text-center" value="${fixVal(item.TRANSP)}">` : `<span class="text-white text-xs">${exibirMoeda(item.TRANSP)}</span>`}</div>
+                </div>
+                <div class="btn-glass-purple p-6 rounded-3xl flex justify-between items-center text-white"><span class="text-[10px] font-black opacity-60">Total Líquido</span><span class="text-2xl font-black italic">${exibirMoeda(item.TOTAL)}</span></div>`;
+        }
+
+        async function salvarAlteracoes() {
+            const v = fixVal(document.getElementById('edit_val').value), ex = fixVal(document.getElementById('edit_extra').value), al = fixVal(document.getElementById('edit_material').value), tr = fixVal(document.getElementById('edit_transp').value);
+            const totalNum = v + ex + al + tr;
+            const updates = { 
+                EMPRESA: document.getElementById('edit_empresa').value.toUpperCase(), RAT: document.getElementById('edit_rat').value, "INTERMÉDIO": document.getElementById('edit_inter').value.toUpperCase(), Local: document.getElementById('edit_local').value.toUpperCase(), "DESCRIÇÃO": document.getElementById('edit_desc').value,
+                VALOR: formatarParaDB(v), EXTRA: formatarParaDB(ex), MATERIAL: formatarParaDB(al), TRANSP: formatarParaDB(tr), TOTAL: formatarParaDB(totalNum)
+            };
+            const { error } = await supabaseClient.from('atendimentos').update(updates).eq('id', itemSendoEditado.id);
+            if (!error) { fecharModal(); await carregarLancamentos(); } else alert("Erro ao salvar!");
+        }
+
+        function toggleEditMode() { editMode = !editMode; document.getElementById('modalFooter').classList.toggle('hidden', !editMode); renderizarModalBody(); }
+        function fecharModal() { document.getElementById('modalDetalhes').style.display = "none"; editMode = false; }
+
         function showTab(tabId, btn) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
             document.getElementById('tab-' + tabId).classList.remove('hidden');
-            const ind = document.getElementById('tabIndicator');
-            ind.style.opacity = "1"; ind.style.width = btn.offsetWidth + 'px'; ind.style.left = btn.offsetLeft + 'px';
+            const indicator = document.getElementById('tabIndicator');
+            indicator.style.width = btn.offsetWidth + 'px'; indicator.style.left = btn.offsetLeft + 'px';
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.replace('text-white', 'text-slate-400'));
             btn.classList.replace('text-slate-400', 'text-white');
             if(tabId === 'fechamento') carregarFechamentoFinal(); if(tabId === 'dashboard') renderCharts(); if(tabId === 'lancamentos') carregarLancamentos();
         }
 
-        // --- AUTO RAT (OCR) ---
-        async function processarAutoRAT(input) {
-            if (!input.files || !input.files[0]) return;
-            const loader = document.getElementById('loadingOCR');
-            loader.style.display = 'flex';
-            const file = input.files[0];
-            let imageSource;
+        function filterFechamento(tipo) { filtroFechamento = tipo; carregarFechamentoFinal(); }
 
-            try {
-                if (file.type === 'application/pdf') {
-                    const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
-                    const page = await pdf.getPage(1);
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    const viewport = page.getViewport({ scale: 2.0 });
-                    canvas.height = viewport.height; canvas.width = viewport.width;
-                    await page.render({ canvasContext: context, viewport }).promise;
-                    imageSource = canvas.toDataURL('image/png');
-                } else { imageSource = URL.createObjectURL(file); }
+        async function carregarFechamentoFinal() {
+            const container = document.getElementById('tab-fechamento'); container.innerHTML = '<div class="p-20 text-center animate-pulse uppercase font-black text-purple-500">Mapeando histórico...</div>';
+            const { data: lancamentos } = await supabaseClient.from('atendimentos').select('*').eq('TIPO', 'Entrada').order('id', { ascending: false });
+            const { data: configs } = await supabaseClient.from('empresas_config').select('*');
+            const grupos = {};
+            lancamentos.forEach(l => {
+                if(!l.DIA) return;
+                let dia, mes, ano;
+                if (l.DIA.includes('-')) { const pts = l.DIA.split('-'); ano = pts[0]; mes = pts[1]; dia = pts[2]; } 
+                else { const pts = l.DIA.split('/'); dia = pts[0]; mes = pts[1]; ano = pts[2]; }
+                if(!ano || !mes) return;
+                const chaveSort = `${ano}${mes.toString().padStart(2, '0')}`; 
+                const chaveNome = `${ano} - ${mesesNomes[parseInt(mes)-1]}`;
+                if(!grupos[chaveSort]) grupos[chaveSort] = { nome: chaveNome, p: {}, pagos: [], tp: 0, trec: 0 };
+                const v = fixVal(l.TOTAL);
+                if(l.PAGAMENTO !== 'PAGO') {
+                    const emp = l.EMPRESA || 'Outros'; 
+                    if(!grupos[chaveSort].p[emp]) grupos[chaveSort].p[emp] = { total: 0, chamados: [], ids: [] };
+                    grupos[chaveSort].p[emp].total += v; grupos[chaveSort].p[emp].chamados.push(l); grupos[chaveSort].p[emp].ids.push(l.id); grupos[chaveSort].tp += v;
+                } else { grupos[chaveSort].pagos.push(l); grupos[chaveSort].trec += v; }
+            });
 
-                const result = await Tesseract.recognize(imageSource, 'por');
-                extrairDadosOCR(result.data.text);
-            } catch (err) { alert("Falha no OCR: " + err.message); } 
-            finally { loader.style.display = 'none'; }
+            let headerHTML = `
+                <div class="flex flex-col md:flex-row justify-between items-end md:items-center border-b border-white/10 pb-6 gap-6">
+                    <h2 class="text-2xl font-black text-purple-400 italic uppercase tracking-tighter">Fechamentos Inteligentes</h2>
+                    <div class="flex bg-black/40 p-1.5 rounded-2xl border border-white/5">
+                        <button onclick="filterFechamento('TODOS')" class="px-6 py-2 rounded-xl text-[10px] font-black transition-all ${filtroFechamento === 'TODOS' ? 'btn-glass-purple text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}">TODOS</button>
+                        <button onclick="filterFechamento('PENDENTES')" class="px-6 py-2 rounded-xl text-[10px] font-black transition-all ${filtroFechamento === 'PENDENTES' ? 'btn-glass-purple text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}">PENDENTES</button>
+                        <button onclick="filterFechamento('PAGOS')" class="px-6 py-2 rounded-xl text-[10px] font-black transition-all ${filtroFechamento === 'PAGOS' ? 'btn-glass-purple text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}">PAGOS</button>
+                    </div>
+                </div>`;
+            container.innerHTML = headerHTML;
+            Object.keys(grupos).sort((a,b) => b - a).forEach(mKey => {
+                const g = grupos[mKey];
+                const temPendentes = Object.keys(g.p).length > 0;
+                const temPagos = g.pagos.length > 0;
+                if ((filtroFechamento === 'PENDENTES' && !temPendentes) || (filtroFechamento === 'PAGOS' && !temPagos)) return;
+                let htmlMês = `<div class="space-y-8 mt-12">
+                    <div class="glass p-6 rounded-3xl border-l-8 border-purple-600 flex flex-col md:flex-row justify-between items-center shadow-2xl gap-4">
+                        <div><h3 class="text-sm font-black text-slate-100 uppercase tracking-widest">${g.nome}</h3></div>
+                        <div class="flex gap-10 text-right">
+                            <div><span class="text-[9px] font-bold text-slate-400 uppercase block">Recebido</span><span class="text-lg md:text-2xl font-black text-emerald-400 italic">${formatarParaDB(g.trec)}</span></div>
+                            <div><span class="text-[9px] font-bold text-slate-400 uppercase block">Pendente</span><span class="text-lg md:text-2xl font-black text-purple-400 italic">${formatarParaDB(g.tp)}</span></div>
+                        </div>
+                    </div>`;
+                if (filtroFechamento !== 'PAGOS' && temPendentes) {
+                    htmlMês += `<div class="grid grid-cols-1 md:grid-cols-3 gap-6">`;
+                    Object.keys(g.p).forEach(e => {
+                        const info = g.p[e], c = configs?.find(x => x.nome_empresa === e);
+                        htmlMês += `<div class="glass p-6 rounded-3xl card-pendente-moldura flex flex-col justify-between shadow-xl">
+                            <div><h4 class="font-black text-white text-[10px] uppercase mb-4 border-b border-white/10 pb-2 tracking-widest">${e}</h4>
+                            <div class="space-y-2 mb-6">${info.chamados.map(i => `<div class="flex justify-between items-start text-[9px] border-b border-white/5 pb-1"><div class="text-slate-400 font-bold">${i.DIA}</div><div class="font-black text-white italic">${exibirMoeda(i.TOTAL)}</div></div>`).join('')}</div></div>
+                            <div><div class="flex justify-between items-center mb-4 px-2"><span class="text-[9px] font-black text-red-500 uppercase">Total:</span><span class="text-xl font-black text-purple-400 italic">${formatarParaDB(info.total)}</span></div>
+                            <button onclick="marcarComoPago([${info.ids}])" class="w-full bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-emerald-500 hover:text-white transition-all mb-4">RECEBI PAGAMENTO</button>
+                            <div class="text-[8px] text-slate-500 bg-black/40 p-3 rounded-2xl border border-white/5 space-y-1 text-left font-bold uppercase">
+                                <p>📧 Email: <span class="text-white">${c?.email_fechamento || '---'}</span></p>
+                                <p>⏳ Prazo: <span class="text-white">${c?.prazo_envio || '---'}</span></p>
+                                <p>🛠️ Proc. Extra: <span class="text-white">${c?.procedimento_extra || '---'}</span></p>
+                            </div></div></div>`;
+                    });
+                    htmlMês += `</div>`;
+                }
+                if (filtroFechamento !== 'PENDENTES' && temPagos) {
+                    htmlMês += `<div class="w-full bg-emerald-500/5 rounded-3xl p-8 border border-emerald-500/10 mt-6"><div class="flex justify-between items-center mb-6 uppercase border-b border-emerald-500/20 pb-4">
+                            <h5 class="text-[11px] font-black text-emerald-500 italic tracking-widest flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>Histórico de Recebimentos</h5>
+                            <span class="text-[10px] font-black text-emerald-600 italic">Mês Liquidado: ${formatarParaDB(g.trec)}</span></div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-8 gap-y-4">${g.pagos.map(p => `<div class="flex justify-between items-center text-[10px] border-b border-white/5 pb-2 hover:bg-white/5 transition-colors px-2"><span class="font-bold text-slate-400 uppercase truncate mr-2">${p.EMPRESA}</span><span class="font-black text-emerald-400 italic whitespace-nowrap">${exibirMoeda(p.TOTAL)}</span></div>`).join('')}</div></div>`;
+                }
+                htmlMês += `</div>`; container.innerHTML += htmlMês;
+            });
         }
 
-        function extrairDadosOCR(texto) {
-            const t = texto.toUpperCase();
-            let empresa = "", intermedio = "";
-            
-            if (t.includes("AMERICANAS")) empresa = "LOJAS AMERICANAS";
-            if (t.includes("MARTINS")) empresa = "MARTINS UBERLÂNDIA";
-            if (t.includes("SODEXO")) empresa = "SODEXO";
-            if (t.includes("DELFIA")) intermedio = "DELFIA";
-            if (t.includes("SONDA") || t.includes("PROMPT-IT")) intermedio = "SONDA";
-
-            let rat = (texto.match(/(?:FSA|RAT|CHAMADO|N[º°0]):?\s*(\d+)/i) || ["", ""])[1];
-            let dataRaw = (texto.match(/(\d{2}[\/|-]\d{2}[\/|-]\d{2,4})/) || [""])[0];
-            let dataFinal = new Date().toLocaleDateString('pt-BR');
-            if (dataRaw) {
-                let p = dataRaw.replace(/-/g, '/').split('/');
-                if(p[2].length === 2) p[2] = "20" + p[2];
-                dataFinal = `${p[0].padStart(2,'0')}/${p[1].padStart(2,'0')}/${p[2]}`;
-            }
-
-            let desc = "";
-            if (t.includes("SOLUCAO APLICADA")) desc = texto.split(/SOLUÇÃO APLICADA/i)[1]?.split(/CHAMADO EXTERNO/i)[0] || "";
-            else if (t.includes("DIAGNOSTICO/TESTES")) desc = texto.split(/DIAGNÓSTICO\/TESTES/i)[1]?.split(/SOLUÇÃO/i)[0] || "";
-
-            itemSendoEditado = {
-                EMPRESA: empresa, INTERMÉDIO: intermedio, RAT: rat, DIA: dataFinal,
-                Local: (texto.match(/(?:UNIDADE|LOCAL|ENDEREÇO):?\s*(.*)/i) || ["", ""])[1].trim().toUpperCase(),
-                DESCRIÇÃO: desc.trim().substring(0, 400),
-                VALOR: "R$ 0,00", EXTRA: "R$ 0,00", MATERIAL: "R$ 0,00", TRANSP: "R$ 0,00", TOTAL: "R$ 0,00", TIPO: 'Entrada'
+        async function marcarComoPago(ids) { if(confirm("Confirmar recebimento?")) { await supabaseClient.from('atendimentos').update({ PAGAMENTO: 'PAGO' }).in('id', ids); await carregarFechamentoFinal(); } }
+        
+        document.getElementById('formAtendimento').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const dpts = document.getElementById('DIA').value.split('-');
+            const v = fixVal(document.getElementById('VALOR').value), ex = fixVal(document.getElementById('EXTRA').value), al = fixVal(document.getElementById('MATERIAL').value), tr = fixVal(document.getElementById('TRANSP').value);
+            const totalNum = v+ex+al+tr;
+            const payload = {
+                TIPO: tipoAtual, DIA: `${dpts[2]}/${dpts[1]}/${dpts[0]}`, EMPRESA: document.getElementById('EMPRESA').value.toUpperCase(), "INTERMÉDIO": document.getElementById('INTERMEDIO').value.toUpperCase(), Local: document.getElementById('Local').value.toUpperCase(), RAT: document.getElementById('RAT').value, "DESCRIÇÃO": document.getElementById('DESCRICAO').value,
+                VALOR: formatarParaDB(v), EXTRA: formatarParaDB(ex), MATERIAL: formatarParaDB(al), TRANSP: formatarParaDB(tr), TOTAL: formatarParaDB(totalNum), PAGAMENTO: tipoAtual === 'Saída' ? 'SAÍDA' : 'NÃO PAGO', "Mês": parseInt(dpts[1]), "ANO": parseInt(dpts[0])
             };
+            const { error } = await supabaseClient.from('atendimentos').insert([payload]);
+            if(!error) location.reload(); else alert("Erro!");
+        });
 
-            isAutoRAT = true; editMode = true; renderizarModalBody();
-            document.getElementById('modalStatusText').innerText = "PRÉVIA AUTO RAT";
-            document.getElementById('modalBtnDelete').style.display = "none";
-            document.getElementById('modalBtnEdit').style.display = "none";
-            document.getElementById('modalFooter').classList.remove('hidden');
-            document.getElementById('modalConfirmBtn').innerText = "SALVAR NO BANCO";
-            document.getElementById('modalDetalhes').style.display = "block";
-        }
-
-        // --- DASHBOARD ---
         async function renderCharts() {
-            const ano = document.getElementById('filtroAnoDash').value;
-            const mes = document.getElementById('filtroMesDash').value;
+            const anoSel = document.getElementById('filtroAnoDash').value;
+            const mesSel = document.getElementById('filtroMesDash').value;
             const { data } = await supabaseClient.from('atendimentos').select('*');
             if(!data) return;
-
             if(chart1) chart1.destroy(); if(chart2) chart2.destroy(); if(chart3) chart3.destroy(); if(chart4) chart4.destroy();
-
             let labels = [], ganhos = [], gastos = [], eMap = {};
-            let cB = 0, cE = 0, cM = 0, cT = 0, sPago = 0, sPend = 0;
-
-            if (mes === 'TODOS') {
+            let compBase = 0, compExtra = 0, compMaterial = 0, compTransp = 0;
+            let statusPago = 0, statusPendente = 0;
+            if (mesSel === 'TODOS') {
                 labels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
                 ganhos = new Array(12).fill(0); gastos = new Array(12).fill(0);
                 data.forEach(d => {
                     if (!d.DIA) return;
                     let dAno = d.DIA.includes('-') ? d.DIA.split('-')[0] : d.DIA.split('/')[2];
                     let dMes = parseInt(d.DIA.includes('-') ? d.DIA.split('-')[1] : d.DIA.split('/')[1]);
-                    if(dAno == ano) {
-                        const v = fixVal(d.TOTAL);
+                    if(dAno == anoSel) {
+                        const mIdx = dMes - 1;
+                        const vTotal = fixVal(d.TOTAL);
                         if(d.TIPO === 'Entrada') { 
-                            ganhos[dMes-1] += v; eMap[d.EMPRESA] = (eMap[d.EMPRESA] || 0) + v;
-                            cB += fixVal(d.VALOR); cE += fixVal(d.EXTRA); cM += fixVal(d.MATERIAL); cT += fixVal(d.TRANSP);
-                            if(d.PAGAMENTO === 'PAGO') sPago += v; else sPend += v;
-                        } else { gastos[dMes-1] += v; }
+                            ganhos[mIdx] += vTotal; 
+                            eMap[d.EMPRESA] = (eMap[d.EMPRESA] || 0) + vTotal;
+                            compBase += fixVal(d.VALOR); compExtra += fixVal(d.EXTRA); compMaterial += fixVal(d.MATERIAL); compTransp += fixVal(d.TRANSP);
+                            if(d.PAGAMENTO === 'PAGO') statusPago += vTotal; else statusPendente += vTotal;
+                        } else { gastos[mIdx] += vTotal; }
                     }
                 });
             } else {
-                const dias = new Date(ano, mes, 0).getDate();
-                labels = Array.from({length: dias}, (_, i) => i + 1);
-                ganhos = new Array(dias).fill(0); gastos = new Array(dias).fill(0);
+                const diasNoMes = new Date(anoSel, mesSel, 0).getDate();
+                labels = Array.from({length: diasNoMes}, (_, i) => i + 1);
+                ganhos = new Array(diasNoMes).fill(0); gastos = new Array(diasNoMes).fill(0);
                 data.forEach(d => {
                     if (!d.DIA) return;
                     let dAno = d.DIA.includes('-') ? d.DIA.split('-')[0] : d.DIA.split('/')[2];
                     let dMes = parseInt(d.DIA.includes('-') ? d.DIA.split('-')[1] : d.DIA.split('/')[1]);
                     let dDia = parseInt(d.DIA.includes('-') ? d.DIA.split('-')[2] : d.DIA.split('/')[0]);
-                    if(dAno == ano && dMes == mes) {
-                        const v = fixVal(d.TOTAL);
+                    if(dAno == anoSel && dMes == mesSel) {
+                        const dIdx = dDia - 1;
+                        const vTotal = fixVal(d.TOTAL);
                         if(d.TIPO === 'Entrada') { 
-                            ganhos[dDia-1] += v; eMap[d.EMPRESA] = (eMap[d.EMPRESA] || 0) + v;
-                            cB += fixVal(d.VALOR); cE += fixVal(d.EXTRA); cM += fixVal(d.MATERIAL); cT += fixVal(d.TRANSP);
-                            if(d.PAGAMENTO === 'PAGO') sPago += v; else sPend += v;
-                        } else { gastos[dDia-1] += v; }
+                            ganhos[dIdx] += vTotal; 
+                            eMap[d.EMPRESA] = (eMap[d.EMPRESA] || 0) + vTotal;
+                            compBase += fixVal(d.VALOR); compExtra += fixVal(d.EXTRA); compMaterial += fixVal(d.MATERIAL); compTransp += fixVal(d.TRANSP);
+                            if(d.PAGAMENTO === 'PAGO') statusPago += vTotal; else statusPendente += vTotal;
+                        } else { gastos[dIdx] += vTotal; }
                     }
                 });
             }
-
-            chart1 = new Chart(document.getElementById('chartFluxo').getContext('2d'), { type: 'bar', data: { labels: labels, datasets: [{ label: 'Ganhos', data: ganhos, backgroundColor: '#10b981' }, { label: 'Gastos', data: gastos, backgroundColor: '#ef4444' }]}});
-            const top = Object.entries(eMap).sort((a,b) => b[1]-a[1]).slice(0, 7);
-            chart2 = new Chart(document.getElementById('chartEmpresas').getContext('2d'), { type: 'doughnut', data: { labels: top.map(x => x[0]), datasets: [{ data: top.map(x => x[1]), backgroundColor: ['#a855f7', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#ec4899', '#06b6d4'] }]}});
-            chart3 = new Chart(document.getElementById('chartComposicao').getContext('2d'), { type: 'polarArea', data: { labels: ['Base', 'Extra', 'Material', 'Transp'], datasets: [{ data: [cB, cE, cM, cT], backgroundColor: ['#a855f7', '#10b981', '#f59e0b', '#3b82f6'] }]}});
-            chart4 = new Chart(document.getElementById('chartStatusPagamento').getContext('2d'), { type: 'pie', data: { labels: ['Pago', 'Pendente'], datasets: [{ data: [sPago, sPend], backgroundColor: ['#10b981', '#f59e0b'] }]}});
-        }
-
-        // --- FECHAMENTO ---
-        async function carregarFechamentoFinal() {
-            const container = document.getElementById('tab-fechamento'); container.innerHTML = '<div class="p-20 text-center animate-pulse font-black text-purple-500">CARREGANDO...</div>';
-            const { data: lancs } = await supabaseClient.from('atendimentos').select('*').eq('TIPO', 'Entrada').order('id', { ascending: false });
-            const { data: configs } = await supabaseClient.from('empresas_config').select('*');
-            const grupos = {};
-            lancs.forEach(l => {
-                if(!l.DIA) return;
-                let dia, mes, ano;
-                if (l.DIA.includes('-')) { const pts = l.DIA.split('-'); ano = pts[0]; mes = pts[1]; dia = pts[2]; } 
-                else { const pts = l.DIA.split('/'); dia = pts[0]; mes = pts[1]; ano = pts[2]; }
-                const cS = `${ano}${mes.toString().padStart(2, '0')}`;
-                if(!grupos[cS]) grupos[cS] = { n: `${ano} - ${mesesNomes[parseInt(mes)-1]}`, p: {}, pagos: [], tp: 0, tr: 0 };
-                const v = fixVal(l.TOTAL);
-                if(l.PAGAMENTO !== 'PAGO') {
-                    const e = l.EMPRESA || 'Outros'; if(!grupos[cS].p[e]) grupos[cS].p[e] = { total: 0, chamados: [], ids: [] };
-                    grupos[cS].p[e].total += v; grupos[cS].p[e].chamados.push(l); grupos[cS].p[e].ids.push(l.id); grupos[cS].tp += v;
-                } else { grupos[cS].pagos.push(l); grupos[cS].tr += v; }
+            chart1 = new Chart(document.getElementById('chartFluxo').getContext('2d'), {
+                type: 'bar', data: { labels: labels, datasets: [{ label: 'Ganhos', data: ganhos, backgroundColor: '#10b981', borderRadius: 6 }, { label: 'Gastos', data: gastos, backgroundColor: '#ef4444', borderRadius: 6 }]},
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#f1f5f9' } } } }
             });
-
-            container.innerHTML = `<div class="flex justify-between items-center mb-8 border-b border-white/10 pb-6"><h2 class="text-2xl font-black text-purple-400 italic uppercase">Fechamentos</h2><div class="flex bg-black/40 p-1.5 rounded-2xl"><button onclick="filterFechamento('TODOS')" class="px-6 py-2 rounded-xl text-[10px] font-black ${filtroFechamento==='TODOS'?'btn-glass-purple':'text-slate-500'}">TODOS</button><button onclick="filterFechamento('PENDENTES')" class="px-6 py-2 rounded-xl text-[10px] font-black ${filtroFechamento==='PENDENTES'?'btn-glass-purple':'text-slate-500'}">PENDENTES</button><button onclick="filterFechamento('PAGOS')" class="px-6 py-2 rounded-xl text-[10px] font-black ${filtroFechamento==='PAGOS'?'btn-glass-purple':'text-slate-500'}">PAGOS</button></div></div>`;
-            Object.keys(grupos).sort((a,b) => b - a).forEach(k => {
-                const g = grupos[k];
-                if((filtroFechamento==='PENDENTES' && Object.keys(g.p).length===0) || (filtroFechamento==='PAGOS' && g.pagos.length===0)) return;
-                let h = `<div class="space-y-8 mt-12"><div class="glass p-6 rounded-3xl border-l-8 border-purple-600 flex flex-col md:flex-row justify-between items-center shadow-2xl gap-4"><div><h3 class="text-sm font-black text-slate-100 uppercase tracking-widest">${g.n}</h3></div><div class="flex gap-10 text-right"><div><span class="text-[9px] font-bold text-slate-400 uppercase block">Recebido</span><span class="text-2xl font-black text-emerald-400 italic">${formatarParaDB(g.tr)}</span></div><div><span class="text-[9px] font-bold text-slate-400 uppercase block">Pendente</span><span class="text-2xl font-black text-purple-400 italic">${formatarParaDB(g.tp)}</span></div></div></div>`;
-                if(filtroFechamento !== 'PAGOS') {
-                    h += `<div class="grid grid-cols-1 md:grid-cols-3 gap-6">`;
-                    Object.keys(g.p).forEach(e => {
-                        const info = g.p[e], c = configs?.find(x => x.nome_empresa === e);
-                        h += `<div class="glass p-6 rounded-3xl card-pendente-moldura flex flex-col justify-between shadow-xl"><div><h4 class="font-black text-white text-[10px] uppercase mb-4 border-b border-white/10 pb-2">${e}</h4><div class="space-y-2 mb-6">${info.chamados.map(i => `<div class="flex justify-between items-start text-[9px] border-b border-white/5 pb-1"><div class="text-slate-400 font-bold">${i.DIA}</div><div class="font-black text-white italic">${exibirMoeda(i.TOTAL)}</div></div>`).join('')}</div></div><div><div class="flex justify-between items-center mb-4 px-2"><span class="text-[9px] font-black text-red-500 uppercase">Total:</span><span class="text-xl font-black text-purple-400 italic">${formatarParaDB(info.total)}</span></div><button onclick="marcarComoPago([${info.ids}])" class="w-full bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-emerald-500 hover:text-white transition-all mb-4">RECEBI PAGAMENTO</button><div class="text-[8px] text-slate-500 bg-black/40 p-3 rounded-2xl space-y-1 font-bold uppercase"><p>📧 Email: <span class="text-white">${c?.email_fechamento || '---'}</span></p><p>⏳ Prazo: <span class="text-white">${c?.prazo_envio || '---'}</span></p><p>🛠️ Proc. Extra: <span class="text-white">${c?.procedimento_extra || '---'}</span></p></div></div></div>`;
-                    });
-                    h += `</div>`;
-                }
-                if(filtroFechamento !== 'PENDENTES' && g.pagos.length > 0) {
-                    h += `<div class="w-full bg-emerald-500/5 rounded-3xl p-8 border border-emerald-500/10 mt-6"><h5 class="text-[11px] font-black text-emerald-500 uppercase tracking-widest mb-6">Histórico Pago</h5><div class="grid grid-cols-1 sm:grid-cols-5 gap-x-8 gap-y-4">${g.pagos.map(p => `<div class="flex justify-between items-center text-[10px] border-b border-white/5 pb-2 px-2"><span class="font-bold text-slate-400 uppercase truncate">${p.EMPRESA}</span><span class="font-black text-emerald-400 italic">${exibirMoeda(p.TOTAL)}</span></div>`).join('')}</div></div>`;
-                }
-                container.innerHTML += h + `</div>`;
+            const topEmp = Object.entries(eMap).sort((a,b) => b[1]-a[1]).slice(0, 7);
+            chart2 = new Chart(document.getElementById('chartEmpresas').getContext('2d'), {
+                type: 'doughnut', data: { labels: topEmp.map(x => x[0]), datasets: [{ data: topEmp.map(x => x[1]), backgroundColor: ['#a855f7', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#ec4899', '#06b6d4'], borderWidth: 0 }]},
+                options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'TOP EMPRESAS (R$)', color: '#a855f7' }, legend: { position: 'bottom', labels: { color: '#f1f5f9', font: { size: 9 } } } } }
+            });
+            chart3 = new Chart(document.getElementById('chartComposicao').getContext('2d'), {
+                type: 'polarArea', data: { labels: ['Base', 'Extra', 'Material', 'Transp'], datasets: [{ data: [compBase, compExtra, compMaterial, compTransp], backgroundColor: ['rgba(168, 85, 247, 0.7)', 'rgba(16, 185, 129, 0.7)', 'rgba(245, 158, 11, 0.7)', 'rgba(59, 130, 246, 0.7)'], borderWidth: 0 }]},
+                options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'COMPOSIÇÃO DO FATURAMENTO', color: '#a855f7' }, legend: { position: 'bottom', labels: { color: '#f1f5f9', font: { size: 10 } } } }, scales: { r: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false } } } }
+            });
+            chart4 = new Chart(document.getElementById('chartStatusPagamento').getContext('2d'), {
+                type: 'pie', data: { labels: ['Recebido (Pago)', 'Pendente'], datasets: [{ data: [statusPago, statusPendente], backgroundColor: ['#10b981', '#f59e0b'], borderWidth: 0 }]},
+                options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'SAÚDE DOS RECEBÍVEIS', color: '#a855f7' }, legend: { position: 'bottom', labels: { color: '#f1f5f9', font: { size: 10 } } } } }
             });
         }
-
-        async function marcarComoPago(ids) { if(confirm("Confirmar recebimento?")) { await supabaseClient.from('atendimentos').update({ PAGAMENTO: 'PAGO' }).in('id', ids); await carregarFechamentoFinal(); } }
-        function filterFechamento(t) { filtroFechamento = t; carregarFechamentoFinal(); }
-
-        // --- LANÇAMENTOS ---
-        async function carregarLancamentos() {
-            const { data, error } = await supabaseClient.from('atendimentos').select('*').order('id', { ascending: false });
-            if(!error) { dadosCompletos = data; renderizarTabela(data); popularFiltroAno(); }
-        }
-
-        function renderizarTabela(dados) {
-            const lista = document.getElementById('listaLancamentos'); lista.innerHTML = '';
-            dados.forEach(d => {
-                let s = d.TIPO === 'Saída' ? "status-saida" : (d.PAGAMENTO === 'PAGO' ? "status-pago" : "status-naopago-tab");
-                lista.innerHTML += `<tr onclick="abrirDetalhesDeFila(${d.id})" class="hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors text-slate-300"><td class="p-5 ${s}"><div class="font-bold text-slate-100">${d.DIA}</div></td><td class="p-5"><div class="font-bold text-slate-200 uppercase leading-tight">${d.EMPRESA || '-'}</div><div class="text-[9px] text-purple-700 font-bold italic">${d.RAT || ''}</div></td><td class="p-5 text-right font-black ${d.TIPO==='Saída'?'text-red-400':'text-emerald-400'}">${exibirMoeda(d.TOTAL)}</td></tr>`;
-            });
-        }
-
-        async function salvarAlteracoes() {
-            const v = fixVal(document.getElementById('edit_val').value), ex = fixVal(document.getElementById('edit_extra').value), ma = fixVal(document.getElementById('edit_material').value), tr = fixVal(document.getElementById('edit_transp').value);
-            const totalNum = v + ex + ma + tr;
-            const payload = { 
-                EMPRESA: document.getElementById('edit_empresa').value.toUpperCase(), RAT: document.getElementById('edit_rat').value, "INTERMÉDIO": document.getElementById('edit_inter').value.toUpperCase(), Local: document.getElementById('edit_local').value.toUpperCase(), "DESCRIÇÃO": document.getElementById('edit_desc').value, DIA: document.getElementById('edit_dia').value,
-                VALOR: formatarParaDB(v), EXTRA: formatarParaDB(ex), MATERIAL: formatarParaDB(ma), TRANSP: formatarParaDB(tr), TOTAL: formatarParaDB(totalNum)
-            };
-            if (isAutoRAT) {
-                const p = payload.DIA.split('/'); payload.TIPO = 'Entrada'; payload.PAGAMENTO = 'NÃO PAGO'; payload.ANO = parseInt(p[2]); payload.Mês = parseInt(p[1]);
-                const { error } = await supabaseClient.from('atendimentos').insert([payload]);
-                if (!error) { fecharModal(); await carregarLancamentos(); } else alert("Erro!");
-            } else {
-                const { error } = await supabaseClient.from('atendimentos').update(payload).eq('id', itemSendoEditado.id);
-                if (!error) { fecharModal(); await carregarLancamentos(); } else alert("Erro!");
-            }
-        }
-
-        document.getElementById('formAtendimento').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const dpts = document.getElementById('DIA').value.split('-');
-            const v = fixVal(document.getElementById('VALOR').value), ex = fixVal(document.getElementById('EXTRA').value), ma = fixVal(document.getElementById('MATERIAL').value), tr = fixVal(document.getElementById('TRANSP').value);
-            const total = formatarParaDB(v+ex+ma+tr);
-            const payload = {
-                TIPO: tipoAtual, DIA: `${dpts[2]}/${dpts[1]}/${dpts[0]}`, EMPRESA: document.getElementById('EMPRESA').value.toUpperCase(), "INTERMÉDIO": document.getElementById('INTERMEDIO').value.toUpperCase(), Local: document.getElementById('Local').value.toUpperCase(), RAT: document.getElementById('RAT').value, "DESCRIÇÃO": document.getElementById('DESCRICAO').value,
-                VALOR: formatarParaDB(v), EXTRA: formatarParaDB(ex), MATERIAL: formatarParaDB(ma), TRANSP: formatarParaDB(tr), TOTAL: total, PAGAMENTO: tipoAtual === 'Saída' ? 'SAÍDA' : 'NÃO PAGO', "Mês": parseInt(dpts[1]), "ANO": parseInt(dpts[0])
-            };
-            const { error } = await supabaseClient.from('atendimentos').insert([payload]);
-            if(!error) location.reload(); else alert("Erro!");
-        });
-
-        // --- UI ACTIONS ---
-        function popularFiltroAno() { const selectAno = document.getElementById('filtroAnoDash'); if(selectAno.options.length > 0) return; const anosUnicos = new Set(); dadosCompletos.forEach(d => { if (!d.DIA) return; let ano = d.DIA.includes('-') ? d.DIA.split('-')[0] : d.DIA.split('/')[2]; if (ano) anosUnicos.add(ano); }); const anos = Array.from(anosUnicos).sort((a,b) => b-a); anos.forEach(ano => { let opt = document.createElement('option'); opt.value = ano; opt.innerText = ano; selectAno.appendChild(opt); }); if(anos.length > 0) selectAno.value = anos[0]; }
-        function filtrarLancamentos() { const t = normalizar(document.getElementById('inputBusca').value); renderizarTabela(dadosCompletos.filter(d => normalizar(d.DIA).includes(t) || normalizar(d.EMPRESA).includes(t) || normalizar(d.RAT).includes(t) || normalizar(d.Local).includes(t) || normalizar(d["INTERMÉDIO"]).includes(t) || d.TOTAL.toString().includes(t))); }
-        function abrirDetalhesDeFila(id) { isAutoRAT = false; itemSendoEditado = dadosCompletos.find(x => x.id === id); editMode = false; document.getElementById('modalStatusText').innerText = "DETALHES"; document.getElementById('modalBtnDelete').style.display = "flex"; document.getElementById('modalBtnEdit').style.display = "flex"; document.getElementById('modalFooter').classList.add('hidden'); renderizarModalBody(); document.getElementById('modalDetalhes').style.display = "block"; }
-        function fecharModal() { document.getElementById('modalDetalhes').style.display = "none"; editMode = false; isAutoRAT = false; }
-        function toggleEditMode() { editMode = !editMode; document.getElementById('modalFooter').classList.toggle('hidden', !editMode); renderizarModalBody(); }
-        async function deletarLancamento() { if(confirm("Excluir definitivamente?")) { await supabaseClient.from('atendimentos').delete().eq('id', itemSendoEditado.id); fecharModal(); carregarLancamentos(); } }
-        function setTipo(t) { tipoAtual = t; document.getElementById('TIPO').value = t; const bE = document.getElementById('btnEntrada'), bS = document.getElementById('btnSaida'); if(t === 'Entrada') { bE.className = "flex-1 py-2.5 rounded-xl font-black text-[10px] btn-glass-purple text-white"; bS.className = "flex-1 py-2.5 rounded-xl font-black text-[10px] bg-black/20 text-slate-500"; } else { bS.className = "flex-1 py-2.5 rounded-xl font-black text-[10px] btn-glass-purple text-white"; bE.className = "flex-1 py-2.5 rounded-xl font-black text-[10px] bg-black/20 text-slate-500"; } }
-
-        function renderizarModalBody() {
-            const item = itemSendoEditado; const body = document.getElementById('modalBody'); const head = document.getElementById('modalHeader');
-            let color = item.TIPO === 'Saída' ? 'bg-red-500/80' : (item.PAGAMENTO === 'PAGO' ? 'bg-emerald-600/80' : 'bg-orange-500/80');
-            if(isAutoRAT) color = 'bg-purple-600/90'; head.className = `p-6 flex justify-between items-center text-white border-b border-white/10 sticky top-0 z-20 backdrop-blur-xl ${color}`;
-            body.innerHTML = `
-                <div class="grid grid-cols-2 gap-4 uppercase border-b border-white/10 pb-4">
-                    <div><label class="text-[9px] font-black text-purple-400">EMPRESA</label>${editMode ? `<input id="edit_empresa" class="edit-input" value="${item.EMPRESA || ''}">` : `<p class="font-black text-white text-sm">${item.EMPRESA || '-'}</p>`}</div>
-                    <div><label class="text-[9px] font-black text-purple-400">RAT</label>${editMode ? `<input id="edit_rat" class="edit-input" value="${item.RAT || ''}">` : `<p class="font-black text-purple-500 italic text-sm font-mono">${item.RAT || '-'}</p>`}</div>
-                </div>
-                <div class="grid grid-cols-2 gap-4 uppercase border-b border-white/10 pb-4">
-                    <div><label class="text-[9px] font-black text-purple-400">INTERMÉDIO</label>${editMode ? `<input id="edit_inter" class="edit-input" value="${item["INTERMÉDIO"] || ''}">` : `<p class="font-bold text-slate-200 text-xs">${item["INTERMÉDIO"] || '-'}</p>`}</div>
-                    <div><label class="text-[9px] font-black text-purple-400">LOCAL</label>${editMode ? `<input id="edit_local" class="edit-input" value="${item.Local || ''}">` : `<p class="font-bold text-slate-200 text-xs">${item.Local || '-'}</p>`}</div>
-                </div>
-                <div><label class="text-[9px] font-black text-purple-400 uppercase">Data</label>${editMode ? `<input id="edit_dia" class="edit-input" value="${item.DIA || ''}">` : `<p class="font-bold text-white text-xs">${item.DIA || '-'}</p>`}</div>
-                <div><label class="text-[9px] font-black text-purple-400">Descrição</label>${editMode ? `<textarea id="edit_desc" class="edit-input h-24">${item["DESCRIÇÃO"] || ''}</textarea>` : `<div class="bg-black/40 p-4 rounded-xl italic text-slate-400 text-[10px] border border-white/5 leading-relaxed">"${item["DESCRIÇÃO"] || '---'}"</div>`}</div>
-                <div class="grid grid-cols-4 gap-2 text-center text-[8px] font-black uppercase">
-                    <div class="bg-white/5 p-2 rounded-xl">Base<br>${editMode ? `<input id="edit_val" class="edit-input !p-1 text-center" value="${fixVal(item.VALOR)}">` : `<span class="text-white text-xs">${exibirMoeda(item.VALOR)}</span>`}</div>
-                    <div class="bg-white/5 p-2 rounded-xl">Extra<br>${editMode ? `<input id="edit_extra" class="edit-input !p-1 text-center" value="${fixVal(item.EXTRA)}">` : `<span class="text-white text-xs">${exibirMoeda(item.EXTRA)}</span>`}</div>
-                    <div class="bg-white/5 p-2 rounded-xl">Material<br>${editMode ? `<input id="edit_material" class="edit-input !p-1 text-center" value="${fixVal(item.MATERIAL)}">` : `<span class="text-white text-xs">${exibirMoeda(item.MATERIAL)}</span>`}</div>
-                    <div class="bg-white/5 p-2 rounded-xl">Transp<br>${editMode ? `<input id="edit_transp" class="edit-input !p-1 text-center" value="${fixVal(item.TRANSP)}">` : `<span class="text-white text-xs">${exibirMoeda(item.TRANSP)}</span>`}</div>
-                </div>`;
-        }
-
-        window.onload = () => {
-            carregarLancamentos();
-            setTimeout(() => {
-                const btn = document.getElementById('btnTabLancamentos');
-                const ind = document.getElementById('tabIndicator');
-                ind.style.opacity = "1"; ind.style.width = btn.offsetWidth + 'px'; ind.style.left = btn.offsetLeft + 'px';
-            }, 1000);
-        };
+        window.onload = () => carregarLancamentos();
     </script>
 </body>
 </html>
