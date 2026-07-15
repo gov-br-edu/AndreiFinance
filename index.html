@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finance Pro - Ultra Aurora Glass</title>
     
+    <!-- MINIATURA DO SITE (FAVICON) -->
     <link rel="icon" type="image/png" href="1781706422626.png">
     <link rel="apple-touch-icon" href="1781706422626.png">
+    <!-- Meta tags para visualização em redes sociais -->
     <meta property="og:image" content="1781706422626.png">
     <meta name="twitter:image" content="1781706422626.png">
 
@@ -15,22 +17,35 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+
         body { background: #020617; font-family: 'Plus Jakarta Sans', sans-serif; color: #f1f5f9; min-height: 100vh; position: relative; overflow-x: hidden; }
+
         .bg-pattern { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; pointer-events: none; }
         .logo-central { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -45%); width: 320px; height: 320px; background: url("1781706422626.png") no-repeat center; background-size: contain; filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.6)); }
+
         .glass { background: rgba(15, 23, 42, 0.45) !important; backdrop-filter: blur(30px) saturate(180%); border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); }
         .btn-glass-purple { background: linear-gradient(135deg, rgba(168, 85, 247, 0.8), rgba(107, 33, 168, 0.8)); transition: 0.3s; }
+
         .tabs-container { position: relative; display: flex; background: rgba(0,0,0,0.4); padding: 4px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
         .tab-indicator { position: absolute; height: calc(100% - 8px); top: 4px; left: 4px; border-radius: 12px; background: linear-gradient(135deg, #a855f7, #6b21a8); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1; }
         .tab-btn { position: relative; z-index: 2; transition: color 0.3s; }
-        input, textarea, select { background: rgba(15, 23, 42, 0.8) !important; border: 1px solid rgba(168, 85, 247, 0.3) !important; color: white !important; border-radius: 12px !important; }
+
+        input, textarea, select { 
+            background: rgba(15, 23, 42, 0.8) !important; 
+            border: 1px solid rgba(168, 85, 247, 0.3) !important; 
+            color: white !important; 
+            border-radius: 12px !important;
+        }
+
         .status-pago { border-left: 6px solid #10b981; }
         .status-naopago-tab { border-left: 6px solid #f97316; }
         .status-saida { border-left: 6px solid #ef4444; }
         .card-pendente-moldura { border: 2.5px solid #ef4444 !important; }
+
         .table-container { max-height: 60vh; overflow-y: auto; }
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: #a855f7; border-radius: 10px; }
+
         #modalDetalhes { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); }
         .modal-card { max-height: 90vh; display: flex; flex-direction: column; width: 95%; max-width: 32rem; margin: auto; }
         .modal-body-scroll { overflow-y: auto; flex-grow: 1; padding: 1.5rem; }
@@ -70,7 +85,7 @@
             <div class="lg:col-span-1">
                 <div class="glass p-6 rounded-3xl sticky top-28">
                     
-                    <!-- NOVO BOTÃO AUTO RAT -->
+                    <!-- BOTÃO AUTO RAT (IA) -->
                     <div class="mb-4">
                         <input type="file" id="inputAutoRat" accept="image/*,application/pdf" class="hidden" onchange="handleAutoRat(this)">
                         <button type="button" id="btnAutoRat" onclick="document.getElementById('inputAutoRat').click()" class="w-full py-3 rounded-xl font-black text-[10px] border border-purple-500/50 text-purple-400 hover:bg-purple-500/20 transition-all uppercase tracking-widest flex items-center justify-center gap-2">
@@ -172,15 +187,15 @@
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
         // --- LÓGICA AUTO RAT (GEMINI) ---
-        // ATENÇÃO: Verifique se sua chave de API está correta no Google AI Studio (começa com AIzaSy)
-        const GEMINI_API_KEY = "AQ.Ab8RN6JtBGhp1gWsm8wmxs8m24zNAdre8i2zrgdrej-D_0fY8w"; 
+        // Atualizado com a chave fornecida e método de envio corrigido
+        const GEMINI_API_KEY = "AQ.Ab8RN6LtSwmIe_YdKN92ujPGyi7PissxV23Pw1RNgs4kJhvuYQ"; 
 
         async function handleAutoRat(input) {
             const file = input.files[0];
             if (!file) return;
 
             const btn = document.getElementById('btnAutoRat');
-            const originalText = btn.innerText;
+            const originalContent = btn.innerHTML;
             btn.innerText = "PROCESSANDO...";
             btn.disabled = true;
 
@@ -192,12 +207,13 @@
                 try {
                     const prompt = "Você é um leitor de Ordens de Serviço (OS) e Relatórios de Atendimento Técnico (RAT). Analise a imagem enviada e retorne APENAS os dados abaixo, seguindo estritamente este formato de texto, sem saudações ou explicações adicionais:\n\nDATA: [data no formato DD/MM/AAAA]\nEMPRESA: [nome da empresa em maiúsculas]\nINTERMÉDIO:\nLOCAL: [nome do local/cliente em maiúsculas]\nRAT / OS: [número do chamado, FSA ou OS]\nDESCRIÇÃO: [resumo do defeito e solução em uma frase curta]";
 
-                    // Chave enviada na URL conforme padrão REST do Google
                     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
                     const response = await fetch(url, {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
                         body: JSON.stringify({
                             contents: [{
                                 parts: [
@@ -214,14 +230,17 @@
                         throw new Error(data.error.message);
                     }
 
-                    const resultText = data.candidates[0].content.parts[0].text;
-                    fillFormFromIA(resultText);
-
+                    if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0].text) {
+                        const resultText = data.candidates[0].content.parts[0].text;
+                        fillFormFromIA(resultText);
+                    } else {
+                        alert("Não foi possível extrair dados legíveis da imagem.");
+                    }
                 } catch (error) {
                     console.error(error);
                     alert("Erro na IA: " + error.message);
                 } finally {
-                    btn.innerText = originalText;
+                    btn.innerHTML = originalContent;
                     btn.disabled = false;
                     input.value = "";
                 }
@@ -302,7 +321,8 @@
             const anosUnicos = new Set();
             dadosCompletos.forEach(d => {
                 if (!d.DIA) return;
-                let ano = d.DIA.includes('-') ? d.DIA.split('-')[0] : d.DIA.split('/')[2];
+                let pts = d.DIA.split('/');
+                let ano = pts[2];
                 if (ano) anosUnicos.add(ano);
             });
             const anos = Array.from(anosUnicos).sort((a,b) => b-a);
