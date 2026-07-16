@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finance Pro - Ultra Aurora Glass</title>
     
     <!-- MINIATURA DO SITE (FAVICON) -->
@@ -18,7 +18,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
 
-        body { background: #020617; font-family: 'Plus Jakarta Sans', sans-serif; color: #f1f5f9; min-height: 100vh; position: relative; overflow-x: hidden; width: 100%; }
+        body { background: #020617; font-family: 'Plus Jakarta Sans', sans-serif; color: #f1f5f9; min-height: 100vh; position: relative; overflow-x: hidden; }
 
         .bg-pattern { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; pointer-events: none; }
         .logo-central { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -45%); width: 320px; height: 320px; background: url("1781706422626.png") no-repeat center; background-size: contain; filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.6)); }
@@ -26,10 +26,9 @@
         .glass { background: rgba(15, 23, 42, 0.45) !important; backdrop-filter: blur(30px) saturate(180%); border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); }
         .btn-glass-purple { background: linear-gradient(135deg, rgba(168, 85, 247, 0.8), rgba(107, 33, 168, 0.8)); transition: 0.3s; }
 
-        .tabs-container { position: relative; display: flex; background: rgba(0,0,0,0.4); padding: 4px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; }
-        .tabs-container::-webkit-scrollbar { display: none; }
+        .tabs-container { position: relative; display: flex; background: rgba(0,0,0,0.4); padding: 4px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
         .tab-indicator { position: absolute; height: calc(100% - 8px); top: 4px; left: 4px; border-radius: 12px; background: linear-gradient(135deg, #a855f7, #6b21a8); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1; }
-        .tab-btn { position: relative; z-index: 2; transition: color 0.3s; white-space: nowrap; }
+        .tab-btn { position: relative; z-index: 2; transition: color 0.3s; }
 
         input, textarea, select { 
             background: rgba(15, 23, 42, 0.8) !important; 
@@ -38,16 +37,53 @@
             border-radius: 12px !important;
         }
 
-        .magic-box { border: 2px dashed rgba(168, 85, 247, 0.4) !important; background: rgba(168, 85, 247, 0.05) !important; transition: 0.3s; }
-        .magic-box:focus { border-color: #a855f7 !important; background: rgba(168, 85, 247, 0.1) !important; box-shadow: 0 0 15px rgba(168, 85, 247, 0.2); }
+        /* Animação da Magic Box */
+        .magic-box-wrapper {
+            position: relative;
+            padding: 2px;
+            border-radius: 14px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .magic-box-wrapper::before {
+            content: '';
+            position: absolute;
+            width: 150%;
+            height: 400%;
+            background: conic-gradient(#a855f7 0deg, transparent 20deg, transparent 180deg, #a855f7 180deg, transparent 200deg, transparent 360deg);
+            animation: rotate-border 4s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes rotate-border {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .magic-box { 
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            border: none !important;
+            background: #0f172a !important; 
+            transition: 0.3s; 
+        }
+        
+        .magic-box:focus {
+            background: rgba(168, 85, 247, 0.1) !important;
+            box-shadow: inset 0 0 10px rgba(168, 85, 247, 0.2);
+        }
 
         .status-pago { border-left: 6px solid #10b981; }
         .status-naopago-tab { border-left: 6px solid #f97316; }
         .status-saida { border-left: 6px solid #ef4444; }
         .card-pendente-moldura { border: 2.5px solid #ef4444 !important; }
 
-        .table-container { max-height: 60vh; overflow-y: auto; overflow-x: auto; width: 100%; }
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        .table-container { max-height: 60vh; overflow-y: auto; }
+        ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: #a855f7; border-radius: 10px; }
 
         #modalDetalhes { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); }
@@ -71,15 +107,15 @@
         <div class="logo-central"></div>
     </div>
 
-    <nav class="glass sticky top-0 z-50 px-2 md:px-4 h-20 border-b border-white/5 flex items-center">
-        <div class="max-w-7xl mx-auto w-full flex justify-between items-center gap-2">
-            <img src="1781706422626.png" class="h-10 w-10 md:h-14 md:w-14 rounded-xl object-cover flex-shrink-0">
-            <div class="tabs-container flex-grow max-w-full">
+    <nav class="glass sticky top-0 z-50 px-4 h-20 border-b border-white/5 flex items-center">
+        <div class="max-w-7xl mx-auto w-full flex justify-between items-center">
+            <img src="1781706422626.png" class="h-14 w-14 rounded-xl object-cover">
+            <div class="tabs-container">
                 <div id="tabIndicator" class="tab-indicator"></div>
-                <button onclick="showTab('lancamentos', this)" id="btnTabLancamentos" class="tab-btn px-3 md:px-6 py-2 rounded-xl text-[9px] md:text-[10px] font-bold text-white">LANÇAMENTOS</button>
-                <button onclick="showTab('empresas', this)" class="tab-btn px-3 md:px-6 py-2 rounded-xl text-[9px] md:text-[10px] font-bold text-slate-400">EMPRESAS</button>
-                <button onclick="showTab('fechamento', this)" class="tab-btn px-3 md:px-6 py-2 rounded-xl text-[9px] md:text-[10px] font-bold text-slate-400">FECHAMENTO</button>
-                <button onclick="showTab('dashboard', this)" class="tab-btn px-3 md:px-6 py-2 rounded-xl text-[9px] md:text-[10px] font-bold text-slate-400">DASHBOARD</button>
+                <button onclick="showTab('lancamentos', this)" id="btnTabLancamentos" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-white">LANÇAMENTOS</button>
+                <button onclick="showTab('empresas', this)" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-slate-400">EMPRESAS</button>
+                <button onclick="showTab('fechamento', this)" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-slate-400">FECHAMENTO</button>
+                <button onclick="showTab('dashboard', this)" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-slate-400">DASHBOARD</button>
             </div>
         </div>
     </nav>
@@ -88,9 +124,14 @@
         <!-- ABA LANÇAMENTOS -->
         <section id="tab-lancamentos" class="tab-content grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div class="lg:col-span-1">
-                <div class="glass p-6 rounded-3xl lg:sticky lg:top-28">
+                <div class="glass p-6 rounded-3xl sticky top-28">
+                    <!-- MAGIC BOX COM ANIMAÇÃO -->
                     <div class="mb-6">
-                        <textarea id="magicPaste" placeholder="Cole aqui o texto copiado do Gemini..." class="w-full p-3 text-[10px] h-20 magic-box rounded-xl resize-none placeholder:text-slate-600 outline-none"></textarea>
+                        <label class="text-[9px] font-bold text-purple-400 uppercase tracking-widest ml-1 mb-2 block text-center italic">✨ Auto-preenchimento Inteligente</label>
+                        <div class="magic-box-wrapper">
+                            <textarea id="magicPaste" placeholder="Cole aqui o texto copiado do Gemini..." 
+                            class="w-full p-3 text-[10px] h-20 magic-box rounded-xl resize-none placeholder:text-slate-600 outline-none"></textarea>
+                        </div>
                     </div>
 
                     <form id="formAtendimento" class="space-y-4">
@@ -124,13 +165,13 @@
             </div>
 
             <div class="lg:col-span-3 flex flex-col gap-4">
-                <div class="glass p-2 rounded-2xl flex items-center px-4 md:px-6">
+                <div class="glass p-2 rounded-2xl flex items-center px-6">
                     <svg class="w-5 h-5 text-slate-500 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    <input type="text" id="inputBusca" onkeyup="filtrarLancamentos()" placeholder="Pesquisar..." class="w-full bg-transparent border-none outline-none text-sm md:text-base p-4 placeholder:text-slate-500">
+                    <input type="text" id="inputBusca" onkeyup="filtrarLancamentos()" placeholder="Pesquisar por empresa, intermédio, data, valor ou RAT..." class="w-full bg-transparent border-none outline-none text-base p-4 placeholder:text-slate-500">
                 </div>
                 <div class="glass rounded-3xl overflow-hidden">
                     <div class="table-container">
-                        <table class="w-full text-left text-[10px] md:text-xs relative min-w-[500px]">
+                        <table class="w-full text-left text-xs relative">
                             <thead class="bg-black/40 text-purple-300 font-bold uppercase sticky top-0 z-10 backdrop-blur-md">
                                 <tr><th class="p-5">Data / Hora</th><th class="p-5">Empresa / RAT</th><th class="p-5">Intermédio</th><th class="p-5 text-right">Total</th></tr>
                             </thead>
@@ -144,7 +185,7 @@
         <!-- ABA EMPRESAS -->
         <section id="tab-empresas" class="tab-content hidden grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div class="lg:col-span-1">
-                <div class="glass p-6 rounded-3xl lg:sticky lg:top-28">
+                <div class="glass p-6 rounded-3xl sticky top-28">
                     <h2 class="text-xs font-black text-purple-400 mb-6 uppercase tracking-widest text-center italic">Configurar Empresa</h2>
                     <form id="formEmpresa" class="space-y-4">
                         <input type="hidden" id="empresa_id">
@@ -169,13 +210,12 @@
         
         <section id="tab-fechamento" class="tab-content hidden space-y-12"></section>
 
-        <!-- DASHBOARD -->
         <section id="tab-dashboard" class="tab-content hidden flex flex-col gap-8">
             <div class="glass p-6 rounded-3xl flex flex-wrap items-center gap-6">
                 <h2 class="text-xl font-black text-purple-400 italic uppercase">Filtros Analíticos</h2>
-                <div class="flex gap-2 md:gap-4">
-                    <select id="filtroAnoDash" onchange="renderCharts()" class="p-3 text-[10px] font-bold uppercase min-w-[80px] md:min-w-[120px]"></select>
-                    <select id="filtroMesDash" onchange="renderCharts()" class="p-3 text-[10px] font-bold uppercase min-w-[120px] md:min-w-[150px]">
+                <div class="flex gap-4">
+                    <select id="filtroAnoDash" onchange="renderCharts()" class="p-3 text-xs font-bold uppercase min-w-[120px]"></select>
+                    <select id="filtroMesDash" onchange="renderCharts()" class="p-3 text-xs font-bold uppercase min-w-[150px]">
                         <option value="TODOS">Todos os Meses</option>
                         <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
                         <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
@@ -185,15 +225,14 @@
                 </div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="glass p-4 md:p-8 rounded-3xl min-h-[300px] md:min-h-[350px]"><canvas id="chartFluxo"></canvas></div>
-                <div class="glass p-4 md:p-8 rounded-3xl min-h-[300px] md:min-h-[350px]"><canvas id="chartEmpresas"></canvas></div>
-                <div class="glass p-4 md:p-8 rounded-3xl min-h-[300px] md:min-h-[350px]"><canvas id="chartComposicao"></canvas></div>
-                <div class="glass p-4 md:p-8 rounded-3xl min-h-[300px] md:min-h-[350px]"><canvas id="chartStatusPagamento"></canvas></div>
+                <div class="glass p-8 rounded-3xl min-h-[350px]"><canvas id="chartFluxo"></canvas></div>
+                <div class="glass p-8 rounded-3xl min-h-[350px]"><canvas id="chartEmpresas"></canvas></div>
+                <div class="glass p-8 rounded-3xl min-h-[350px]"><canvas id="chartComposicao"></canvas></div>
+                <div class="glass p-8 rounded-3xl min-h-[350px]"><canvas id="chartStatusPagamento"></canvas></div>
             </div>
         </section>
     </main>
 
-    <!-- MODAL DETALHES -->
     <div id="modalDetalhes">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="glass modal-card rounded-3xl overflow-hidden border border-purple-500/30">
@@ -201,7 +240,7 @@
                     <span id="modalStatusText" class="font-black uppercase text-[10px] opacity-60 tracking-widest">DETALHES</span>
                     <div class="flex items-center gap-3">
                         <button onclick="deletarLancamento()" class="circle-icon-btn btn-delete" title="Excluir Lançamento"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2"/></svg></button>
-                        <button onclick="toggleEditMode()" class="circle-icon-btn" title="Editar Lançamento"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-width="2.5"/></svg></button>
+                        <button onclick="toggleEditMode()" class="circle-icon-btn"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-width="2.5"/></svg></button>
                         <button onclick="fecharModal()" class="text-4xl leading-none font-light ml-2">&times;</button>
                     </div>
                 </div>
@@ -223,7 +262,6 @@
         let empresasConfig = [], filtroFechamento = 'TODOS', chart1 = null, chart2 = null, chart3 = null, chart4 = null;
         const mesesNomes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
-        // --- FUNÇÕES AUXILIARES ---
         function fixVal(v) {
             if (!v) return 0;
             let str = v.toString().replace("R$", "").replace(/\s/g, "");
@@ -231,21 +269,18 @@
             else { str = str.replace(",", "."); }
             return parseFloat(str) || 0;
         }
+
         function formatarParaDB(num) { return "R$ " + (num || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
         function exibirMoeda(v) { if (!v) return "R$ 0,00"; let limpo = v.toString().replace("R$", "").trim(); return "R$ " + limpo; }
         function normalizar(t) { return t ? t.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : ""; }
 
-        // --- CÁLCULOS E MAGIC PASTE ---
         document.getElementById('magicPaste').addEventListener('input', function(e) {
             const lines = e.target.value.split('\n');
             lines.forEach(line => {
                 const clean = line.trim();
                 if (clean.toUpperCase().startsWith('DATA:')) {
                     const d = clean.split(':')[1].trim();
-                    if(d.includes('/')) {
-                        const p = d.split('/');
-                        document.getElementById('DIA').value = `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
-                    }
+                    if(d.includes('/')) { const p = d.split('/'); document.getElementById('DIA').value = `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`; }
                 }
                 if (clean.toUpperCase().startsWith('EMPRESA:')) document.getElementById('EMPRESA').value = clean.split(':')[1].trim().toUpperCase();
                 if (clean.toUpperCase().startsWith('LOCAL:')) document.getElementById('Local').value = clean.split(':')[1].trim().toUpperCase();
@@ -292,7 +327,6 @@
             document.getElementById('EXTRA').value = vExtra.toFixed(2).replace('.',',');
         }
 
-        // --- GESTÃO DE EMPRESAS ---
         async function carregarEmpresas() {
             const { data } = await supabaseClient.from('empresas_config').select('*').order('nome');
             empresasConfig = data || [];
@@ -326,6 +360,7 @@
             if(id) await supabaseClient.from('empresas_config').update(payload).eq('id', id);
             else await supabaseClient.from('empresas_config').insert([payload]);
             document.getElementById('formEmpresa').reset();
+            alert("Empresa salva com sucesso!");
             carregarEmpresas();
         });
 
@@ -340,9 +375,9 @@
             document.getElementById('emp_hora_ext').value = emp.hora_ext;
             document.getElementById('emp_ativo_ext').value = emp.ativo_ext;
             document.getElementById('emp_tiers').value = emp.tiers ? JSON.stringify(emp.tiers) : '';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // --- NAVEGAÇÃO E LANÇAMENTOS ---
         function setTipo(t) {
             tipoAtual = t;
             document.getElementById('TIPO').value = t;
@@ -355,12 +390,9 @@
             document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
             document.getElementById('tab-' + id).classList.remove('hidden');
             const ind = document.getElementById('tabIndicator');
-            ind.style.width = btn.offsetWidth + 'px'; 
-            ind.style.left = btn.offsetLeft + 'px';
-            
+            ind.style.width = btn.offsetWidth + 'px'; ind.style.left = btn.offsetLeft + 'px';
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.replace('text-white', 'text-slate-400'));
             btn.classList.replace('text-slate-400', 'text-white');
-
             if(id === 'dashboard') renderCharts();
             if(id === 'fechamento') carregarFechamentoFinal();
             if(id === 'lancamentos') carregarLancamentos();
@@ -393,31 +425,15 @@
             renderizarTabela(fil);
         }
 
-        document.getElementById('formAtendimento').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const dpts = document.getElementById('DIA').value.split('-');
-            const vB = fixVal(document.getElementById('VALOR').value), vE = fixVal(document.getElementById('EXTRA').value), vM = fixVal(document.getElementById('MATERIAL').value), vT = fixVal(document.getElementById('TRANSP').value);
-            const payload = {
-                TIPO: tipoAtual, DIA: `${dpts[2]}/${dpts[1]}/${dpts[0]}`, 
-                HORA_INICIO: document.getElementById('HORA_INICIO').value, HORA_FIM: document.getElementById('HORA_FIM').value,
-                EMPRESA: document.getElementById('EMPRESA').value.toUpperCase(), "INTERMÉDIO": document.getElementById('INTERMEDIO').value.toUpperCase(), Local: document.getElementById('Local').value.toUpperCase(), RAT: document.getElementById('RAT').value, "DESCRIÇÃO": document.getElementById('DESCRICAO').value,
-                VALOR: formatarParaDB(vB), EXTRA: formatarParaDB(vE), MATERIAL: formatarParaDB(vM), TRANSP: formatarParaDB(vT), TOTAL: formatarParaDB(vB+vE+vM+vT), PAGAMENTO: tipoAtual === 'Saída' ? 'SAÍDA' : 'NÃO PAGO', "Mês": parseInt(dpts[1]), "ANO": parseInt(dpts[0])
-            };
-            await supabaseClient.from('atendimentos').insert([payload]);
-            location.reload();
-        });
-
-        // --- FECHAMENTO E DASHBOARD INTEGRAL ---
         async function carregarFechamentoFinal() {
             const container = document.getElementById('tab-fechamento'); 
             container.innerHTML = '<div class="p-20 text-center animate-pulse uppercase font-black text-purple-500 italic text-xs">Mapeando histórico...</div>';
             const { data: lancamentos } = await supabaseClient.from('atendimentos').select('*').eq('TIPO', 'Entrada').order('id', { ascending: false });
             const grupos = {};
-
             lancamentos.forEach(l => {
                 if(!l.DIA) return;
                 let pts = l.DIA.includes('-') ? l.DIA.split('-') : l.DIA.split('/');
-                let mes = pts[1], ano = l.DIA.includes('-') ? pts[0] : pts[2];
+                let dia = l.DIA.includes('-') ? pts[2] : pts[0], mes = pts[1], ano = l.DIA.includes('-') ? pts[0] : pts[2];
                 const chaveSort = `${ano}${mes.toString().padStart(2, '0')}`; 
                 const chaveNome = `${ano} - ${mesesNomes[parseInt(mes)-1]}`;
                 if(!grupos[chaveSort]) grupos[chaveSort] = { nome: chaveNome, p: {}, pagos: [], tp: 0, trec: 0 };
@@ -453,7 +469,6 @@
             if(!data) return;
             if(chart1) chart1.destroy(); if(chart2) chart2.destroy(); if(chart3) chart3.destroy(); if(chart4) chart4.destroy();
             let labels = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"], ganhos = new Array(12).fill(0), gastos = new Array(12).fill(0), eMap = {}, comp = [0,0,0,0], status = [0,0];
-
             data.forEach(d => {
                 if(!d.DIA) return;
                 let pts = d.DIA.includes('/') ? d.DIA.split('/') : d.DIA.split('-');
@@ -464,7 +479,6 @@
                     else gastos[m-1] += v;
                 }
             });
-
             chart1 = new Chart(document.getElementById('chartFluxo').getContext('2d'), { type: 'bar', data: { labels, datasets: [{label:'Ganhos',data:ganhos,backgroundColor:'#10b981'},{label:'Gastos',data:gastos,backgroundColor:'#ef4444'}]}, options: { responsive: true, maintainAspectRatio: false }});
             const topEmp = Object.entries(eMap).sort((a,b) => b[1]-a[1]).slice(0, 5);
             chart2 = new Chart(document.getElementById('chartEmpresas').getContext('2d'), { type: 'doughnut', data: { labels: topEmp.map(x=>x[0]), datasets: [{data: topEmp.map(x=>x[1]), backgroundColor: ['#a855f7','#10b981','#f59e0b','#ef4444','#3b82f6']}]}, options: { responsive: true, maintainAspectRatio: false }});
@@ -472,7 +486,20 @@
             chart4 = new Chart(document.getElementById('chartStatusPagamento').getContext('2d'), { type: 'pie', data: { labels: ['Recebido','Pendente'], datasets: [{data: status, backgroundColor: ['#10b981','#f59e0b']}]}, options: { responsive: true, maintainAspectRatio: false }});
         }
 
-        // --- MODAL DETALHES ---
+        document.getElementById('formAtendimento').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const dpts = document.getElementById('DIA').value.split('-');
+            const vB = fixVal(document.getElementById('VALOR').value), vE = fixVal(document.getElementById('EXTRA').value), vM = fixVal(document.getElementById('MATERIAL').value), vT = fixVal(document.getElementById('TRANSP').value);
+            const payload = {
+                TIPO: tipoAtual, DIA: `${dpts[2]}/${dpts[1]}/${dpts[0]}`, 
+                HORA_INICIO: document.getElementById('HORA_INICIO').value, HORA_FIM: document.getElementById('HORA_FIM').value,
+                EMPRESA: document.getElementById('EMPRESA').value.toUpperCase(), "INTERMÉDIO": document.getElementById('INTERMEDIO').value.toUpperCase(), Local: document.getElementById('Local').value.toUpperCase(), RAT: document.getElementById('RAT').value, "DESCRIÇÃO": document.getElementById('DESCRICAO').value,
+                VALOR: formatarParaDB(vB), EXTRA: formatarParaDB(vE), MATERIAL: formatarParaDB(vM), TRANSP: formatarParaDB(vT), TOTAL: formatarParaDB(vB+vE+vM+vT), PAGAMENTO: tipoAtual === 'Saída' ? 'SAÍDA' : 'NÃO PAGO', "Mês": parseInt(dpts[1]), "ANO": parseInt(dpts[0])
+            };
+            await supabaseClient.from('atendimentos').insert([payload]);
+            location.reload();
+        });
+
         async function abrirDetalhesDeFila(id) {
             itemSendoEditado = dadosCompletos.find(x => x.id === id); 
             editMode = false;
@@ -486,13 +513,11 @@
             const head = document.getElementById('modalHeader');
             let colorClass = item.TIPO === 'Saída' ? 'bg-red-500/80' : (item.PAGAMENTO === 'PAGO' ? 'bg-emerald-600/80' : 'bg-orange-500/80');
             head.className = `p-6 flex justify-between items-center text-white border-b border-white/10 sticky top-0 z-20 backdrop-blur-xl ${colorClass}`;
-
             let tempoTotal = "---";
             if(item.HORA_INICIO && item.HORA_FIM) {
                 const diff = (new Date(`1970-01-01T${item.HORA_FIM}`) - new Date(`1970-01-01T${item.HORA_INICIO}`)) / 60000;
                 if(diff > 0) tempoTotal = `${Math.floor(diff/60)}h ${Math.floor(diff%60)}min`;
             }
-
             document.getElementById('modalBody').innerHTML = `
                 <div class="grid grid-cols-2 gap-4 uppercase border-b border-white/10 pb-4">
                     <div><label class="text-[9px] font-black text-purple-400">EMPRESA</label>${editMode ? `<input id="edit_empresa" class="edit-input" value="${item.EMPRESA || ''}">` : `<p class="font-black text-white text-base leading-tight">${item.EMPRESA || '-'}</p>`}</div>
