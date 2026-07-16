@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Finance Pro - Ultra Aurora Glass</title>
     
     <!-- MINIATURA DO SITE (FAVICON) -->
@@ -18,7 +18,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
 
-        body { background: #020617; font-family: 'Plus Jakarta Sans', sans-serif; color: #f1f5f9; min-height: 100vh; position: relative; overflow-x: hidden; }
+        body { background: #020617; font-family: 'Plus Jakarta Sans', sans-serif; color: #f1f5f9; min-height: 100vh; position: relative; overflow-x: hidden; width: 100%; }
 
         .bg-pattern { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; pointer-events: none; }
         .logo-central { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -45%); width: 320px; height: 320px; background: url("1781706422626.png") no-repeat center; background-size: contain; filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.6)); }
@@ -26,9 +26,10 @@
         .glass { background: rgba(15, 23, 42, 0.45) !important; backdrop-filter: blur(30px) saturate(180%); border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); }
         .btn-glass-purple { background: linear-gradient(135deg, rgba(168, 85, 247, 0.8), rgba(107, 33, 168, 0.8)); transition: 0.3s; }
 
-        .tabs-container { position: relative; display: flex; background: rgba(0,0,0,0.4); padding: 4px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
+        .tabs-container { position: relative; display: flex; background: rgba(0,0,0,0.4); padding: 4px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; }
+        .tabs-container::-webkit-scrollbar { display: none; }
         .tab-indicator { position: absolute; height: calc(100% - 8px); top: 4px; left: 4px; border-radius: 12px; background: linear-gradient(135deg, #a855f7, #6b21a8); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1; }
-        .tab-btn { position: relative; z-index: 2; transition: color 0.3s; }
+        .tab-btn { position: relative; z-index: 2; transition: color 0.3s; white-space: nowrap; }
 
         input, textarea, select { 
             background: rgba(15, 23, 42, 0.8) !important; 
@@ -45,8 +46,8 @@
         .status-saida { border-left: 6px solid #ef4444; }
         .card-pendente-moldura { border: 2.5px solid #ef4444 !important; }
 
-        .table-container { max-height: 60vh; overflow-y: auto; }
-        ::-webkit-scrollbar { width: 5px; }
+        .table-container { max-height: 60vh; overflow-y: auto; overflow-x: auto; width: 100%; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-thumb { background: #a855f7; border-radius: 10px; }
 
         #modalDetalhes { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); }
@@ -70,15 +71,15 @@
         <div class="logo-central"></div>
     </div>
 
-    <nav class="glass sticky top-0 z-50 px-4 h-20 border-b border-white/5 flex items-center">
-        <div class="max-w-7xl mx-auto w-full flex justify-between items-center">
-            <img src="1781706422626.png" class="h-14 w-14 rounded-xl object-cover">
-            <div class="tabs-container">
+    <nav class="glass sticky top-0 z-50 px-2 md:px-4 h-20 border-b border-white/5 flex items-center">
+        <div class="max-w-7xl mx-auto w-full flex justify-between items-center gap-2">
+            <img src="1781706422626.png" class="h-10 w-10 md:h-14 md:w-14 rounded-xl object-cover flex-shrink-0">
+            <div class="tabs-container flex-grow max-w-full">
                 <div id="tabIndicator" class="tab-indicator"></div>
-                <button onclick="showTab('lancamentos', this)" id="btnTabLancamentos" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-white">LANÇAMENTOS</button>
-                <button onclick="showTab('empresas', this)" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-slate-400">EMPRESAS</button>
-                <button onclick="showTab('fechamento', this)" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-slate-400">FECHAMENTO</button>
-                <button onclick="showTab('dashboard', this)" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-slate-400">DASHBOARD</button>
+                <button onclick="showTab('lancamentos', this)" id="btnTabLancamentos" class="tab-btn px-3 md:px-6 py-2 rounded-xl text-[9px] md:text-[10px] font-bold text-white">LANÇAMENTOS</button>
+                <button onclick="showTab('empresas', this)" class="tab-btn px-3 md:px-6 py-2 rounded-xl text-[9px] md:text-[10px] font-bold text-slate-400">EMPRESAS</button>
+                <button onclick="showTab('fechamento', this)" class="tab-btn px-3 md:px-6 py-2 rounded-xl text-[9px] md:text-[10px] font-bold text-slate-400">FECHAMENTO</button>
+                <button onclick="showTab('dashboard', this)" class="tab-btn px-3 md:px-6 py-2 rounded-xl text-[9px] md:text-[10px] font-bold text-slate-400">DASHBOARD</button>
             </div>
         </div>
     </nav>
@@ -87,7 +88,7 @@
         <!-- ABA LANÇAMENTOS -->
         <section id="tab-lancamentos" class="tab-content grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div class="lg:col-span-1">
-                <div class="glass p-6 rounded-3xl sticky top-28">
+                <div class="glass p-6 rounded-3xl lg:sticky lg:top-28">
                     <div class="mb-6">
                         <textarea id="magicPaste" placeholder="Cole aqui o texto copiado do Gemini..." class="w-full p-3 text-[10px] h-20 magic-box rounded-xl resize-none placeholder:text-slate-600 outline-none"></textarea>
                     </div>
@@ -123,13 +124,13 @@
             </div>
 
             <div class="lg:col-span-3 flex flex-col gap-4">
-                <div class="glass p-2 rounded-2xl flex items-center px-6">
+                <div class="glass p-2 rounded-2xl flex items-center px-4 md:px-6">
                     <svg class="w-5 h-5 text-slate-500 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    <input type="text" id="inputBusca" onkeyup="filtrarLancamentos()" placeholder="Pesquisar por empresa, intermédio, data, valor ou RAT..." class="w-full bg-transparent border-none outline-none text-base p-4 placeholder:text-slate-500">
+                    <input type="text" id="inputBusca" onkeyup="filtrarLancamentos()" placeholder="Pesquisar..." class="w-full bg-transparent border-none outline-none text-sm md:text-base p-4 placeholder:text-slate-500">
                 </div>
                 <div class="glass rounded-3xl overflow-hidden">
                     <div class="table-container">
-                        <table class="w-full text-left text-xs relative">
+                        <table class="w-full text-left text-[10px] md:text-xs relative min-w-[500px]">
                             <thead class="bg-black/40 text-purple-300 font-bold uppercase sticky top-0 z-10 backdrop-blur-md">
                                 <tr><th class="p-5">Data / Hora</th><th class="p-5">Empresa / RAT</th><th class="p-5">Intermédio</th><th class="p-5 text-right">Total</th></tr>
                             </thead>
@@ -143,7 +144,7 @@
         <!-- ABA EMPRESAS -->
         <section id="tab-empresas" class="tab-content hidden grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div class="lg:col-span-1">
-                <div class="glass p-6 rounded-3xl sticky top-28">
+                <div class="glass p-6 rounded-3xl lg:sticky lg:top-28">
                     <h2 class="text-xs font-black text-purple-400 mb-6 uppercase tracking-widest text-center italic">Configurar Empresa</h2>
                     <form id="formEmpresa" class="space-y-4">
                         <input type="hidden" id="empresa_id">
@@ -168,13 +169,13 @@
         
         <section id="tab-fechamento" class="tab-content hidden space-y-12"></section>
 
-        <!-- DASHBOARD RESTAURADO -->
+        <!-- DASHBOARD -->
         <section id="tab-dashboard" class="tab-content hidden flex flex-col gap-8">
             <div class="glass p-6 rounded-3xl flex flex-wrap items-center gap-6">
                 <h2 class="text-xl font-black text-purple-400 italic uppercase">Filtros Analíticos</h2>
-                <div class="flex gap-4">
-                    <select id="filtroAnoDash" onchange="renderCharts()" class="p-3 text-xs font-bold uppercase min-w-[120px]"></select>
-                    <select id="filtroMesDash" onchange="renderCharts()" class="p-3 text-xs font-bold uppercase min-w-[150px]">
+                <div class="flex gap-2 md:gap-4">
+                    <select id="filtroAnoDash" onchange="renderCharts()" class="p-3 text-[10px] font-bold uppercase min-w-[80px] md:min-w-[120px]"></select>
+                    <select id="filtroMesDash" onchange="renderCharts()" class="p-3 text-[10px] font-bold uppercase min-w-[120px] md:min-w-[150px]">
                         <option value="TODOS">Todos os Meses</option>
                         <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
                         <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
@@ -184,10 +185,10 @@
                 </div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="glass p-8 rounded-3xl min-h-[350px]"><canvas id="chartFluxo"></canvas></div>
-                <div class="glass p-8 rounded-3xl min-h-[350px]"><canvas id="chartEmpresas"></canvas></div>
-                <div class="glass p-8 rounded-3xl min-h-[350px]"><canvas id="chartComposicao"></canvas></div>
-                <div class="glass p-8 rounded-3xl min-h-[350px]"><canvas id="chartStatusPagamento"></canvas></div>
+                <div class="glass p-4 md:p-8 rounded-3xl min-h-[300px] md:min-h-[350px]"><canvas id="chartFluxo"></canvas></div>
+                <div class="glass p-4 md:p-8 rounded-3xl min-h-[300px] md:min-h-[350px]"><canvas id="chartEmpresas"></canvas></div>
+                <div class="glass p-4 md:p-8 rounded-3xl min-h-[300px] md:min-h-[350px]"><canvas id="chartComposicao"></canvas></div>
+                <div class="glass p-4 md:p-8 rounded-3xl min-h-[300px] md:min-h-[350px]"><canvas id="chartStatusPagamento"></canvas></div>
             </div>
         </section>
     </main>
@@ -222,7 +223,7 @@
         let empresasConfig = [], filtroFechamento = 'TODOS', chart1 = null, chart2 = null, chart3 = null, chart4 = null;
         const mesesNomes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
-        // --- CORE FUNCTIONS ---
+        // --- FUNÇÕES AUXILIARES ---
         function fixVal(v) {
             if (!v) return 0;
             let str = v.toString().replace("R$", "").replace(/\s/g, "");
@@ -234,14 +235,17 @@
         function exibirMoeda(v) { if (!v) return "R$ 0,00"; let limpo = v.toString().replace("R$", "").trim(); return "R$ " + limpo; }
         function normalizar(t) { return t ? t.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : ""; }
 
-        // --- MAGIC PASTE & CÁLCULOS ---
+        // --- CÁLCULOS E MAGIC PASTE ---
         document.getElementById('magicPaste').addEventListener('input', function(e) {
             const lines = e.target.value.split('\n');
             lines.forEach(line => {
                 const clean = line.trim();
                 if (clean.toUpperCase().startsWith('DATA:')) {
                     const d = clean.split(':')[1].trim();
-                    if(d.includes('/')) { const p = d.split('/'); document.getElementById('DIA').value = `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`; }
+                    if(d.includes('/')) {
+                        const p = d.split('/');
+                        document.getElementById('DIA').value = `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+                    }
                 }
                 if (clean.toUpperCase().startsWith('EMPRESA:')) document.getElementById('EMPRESA').value = clean.split(':')[1].trim().toUpperCase();
                 if (clean.toUpperCase().startsWith('LOCAL:')) document.getElementById('Local').value = clean.split(':')[1].trim().toUpperCase();
@@ -322,7 +326,6 @@
             if(id) await supabaseClient.from('empresas_config').update(payload).eq('id', id);
             else await supabaseClient.from('empresas_config').insert([payload]);
             document.getElementById('formEmpresa').reset();
-            alert("Empresa salva com sucesso!");
             carregarEmpresas();
         });
 
@@ -337,10 +340,9 @@
             document.getElementById('emp_hora_ext').value = emp.hora_ext;
             document.getElementById('emp_ativo_ext').value = emp.ativo_ext;
             document.getElementById('emp_tiers').value = emp.tiers ? JSON.stringify(emp.tiers) : '';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // --- NAVEGAÇÃO & LANÇAMENTOS ---
+        // --- NAVEGAÇÃO E LANÇAMENTOS ---
         function setTipo(t) {
             tipoAtual = t;
             document.getElementById('TIPO').value = t;
@@ -353,9 +355,12 @@
             document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
             document.getElementById('tab-' + id).classList.remove('hidden');
             const ind = document.getElementById('tabIndicator');
-            ind.style.width = btn.offsetWidth + 'px'; ind.style.left = btn.offsetLeft + 'px';
+            ind.style.width = btn.offsetWidth + 'px'; 
+            ind.style.left = btn.offsetLeft + 'px';
+            
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.replace('text-white', 'text-slate-400'));
             btn.classList.replace('text-slate-400', 'text-white');
+
             if(id === 'dashboard') renderCharts();
             if(id === 'fechamento') carregarFechamentoFinal();
             if(id === 'lancamentos') carregarLancamentos();
@@ -388,18 +393,31 @@
             renderizarTabela(fil);
         }
 
-        // --- FECHAMENTO INTEGRAL (INDEX 1) ---
+        document.getElementById('formAtendimento').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const dpts = document.getElementById('DIA').value.split('-');
+            const vB = fixVal(document.getElementById('VALOR').value), vE = fixVal(document.getElementById('EXTRA').value), vM = fixVal(document.getElementById('MATERIAL').value), vT = fixVal(document.getElementById('TRANSP').value);
+            const payload = {
+                TIPO: tipoAtual, DIA: `${dpts[2]}/${dpts[1]}/${dpts[0]}`, 
+                HORA_INICIO: document.getElementById('HORA_INICIO').value, HORA_FIM: document.getElementById('HORA_FIM').value,
+                EMPRESA: document.getElementById('EMPRESA').value.toUpperCase(), "INTERMÉDIO": document.getElementById('INTERMEDIO').value.toUpperCase(), Local: document.getElementById('Local').value.toUpperCase(), RAT: document.getElementById('RAT').value, "DESCRIÇÃO": document.getElementById('DESCRICAO').value,
+                VALOR: formatarParaDB(vB), EXTRA: formatarParaDB(vE), MATERIAL: formatarParaDB(vM), TRANSP: formatarParaDB(vT), TOTAL: formatarParaDB(vB+vE+vM+vT), PAGAMENTO: tipoAtual === 'Saída' ? 'SAÍDA' : 'NÃO PAGO', "Mês": parseInt(dpts[1]), "ANO": parseInt(dpts[0])
+            };
+            await supabaseClient.from('atendimentos').insert([payload]);
+            location.reload();
+        });
+
+        // --- FECHAMENTO E DASHBOARD INTEGRAL ---
         async function carregarFechamentoFinal() {
             const container = document.getElementById('tab-fechamento'); 
             container.innerHTML = '<div class="p-20 text-center animate-pulse uppercase font-black text-purple-500 italic text-xs">Mapeando histórico...</div>';
             const { data: lancamentos } = await supabaseClient.from('atendimentos').select('*').eq('TIPO', 'Entrada').order('id', { ascending: false });
-            const { data: configs } = await supabaseClient.from('empresas_config').select('*');
             const grupos = {};
 
             lancamentos.forEach(l => {
                 if(!l.DIA) return;
                 let pts = l.DIA.includes('-') ? l.DIA.split('-') : l.DIA.split('/');
-                let dia = l.DIA.includes('-') ? pts[2] : pts[0], mes = pts[1], ano = l.DIA.includes('-') ? pts[0] : pts[2];
+                let mes = pts[1], ano = l.DIA.includes('-') ? pts[0] : pts[2];
                 const chaveSort = `${ano}${mes.toString().padStart(2, '0')}`; 
                 const chaveNome = `${ano} - ${mesesNomes[parseInt(mes)-1]}`;
                 if(!grupos[chaveSort]) grupos[chaveSort] = { nome: chaveNome, p: {}, pagos: [], tp: 0, trec: 0 };
@@ -420,7 +438,6 @@
 
         async function marcarComoPago(ids) { if(confirm("Confirmar recebimento?")) { await supabaseClient.from('atendimentos').update({ PAGAMENTO: 'PAGO' }).in('id', ids); carregarFechamentoFinal(); } }
 
-        // --- DASHBOARD INTEGRAL (INDEX 1) ---
         function popularFiltroAno() {
             const selectAno = document.getElementById('filtroAnoDash');
             if(selectAno.options.length > 0) return;
@@ -455,21 +472,7 @@
             chart4 = new Chart(document.getElementById('chartStatusPagamento').getContext('2d'), { type: 'pie', data: { labels: ['Recebido','Pendente'], datasets: [{data: status, backgroundColor: ['#10b981','#f59e0b']}]}, options: { responsive: true, maintainAspectRatio: false }});
         }
 
-        // --- LANÇAMENTO & MODAL ---
-        document.getElementById('formAtendimento').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const dpts = document.getElementById('DIA').value.split('-');
-            const vB = fixVal(document.getElementById('VALOR').value), vE = fixVal(document.getElementById('EXTRA').value), vM = fixVal(document.getElementById('MATERIAL').value), vT = fixVal(document.getElementById('TRANSP').value);
-            const payload = {
-                TIPO: tipoAtual, DIA: `${dpts[2]}/${dpts[1]}/${dpts[0]}`, 
-                HORA_INICIO: document.getElementById('HORA_INICIO').value, HORA_FIM: document.getElementById('HORA_FIM').value,
-                EMPRESA: document.getElementById('EMPRESA').value.toUpperCase(), "INTERMÉDIO": document.getElementById('INTERMEDIO').value.toUpperCase(), Local: document.getElementById('Local').value.toUpperCase(), RAT: document.getElementById('RAT').value, "DESCRIÇÃO": document.getElementById('DESCRICAO').value,
-                VALOR: formatarParaDB(vB), EXTRA: formatarParaDB(vE), MATERIAL: formatarParaDB(vM), TRANSP: formatarParaDB(vT), TOTAL: formatarParaDB(vB+vE+vM+vT), PAGAMENTO: tipoAtual === 'Saída' ? 'SAÍDA' : 'NÃO PAGO', "Mês": parseInt(dpts[1]), "ANO": parseInt(dpts[0])
-            };
-            await supabaseClient.from('atendimentos').insert([payload]);
-            location.reload();
-        });
-
+        // --- MODAL DETALHES ---
         async function abrirDetalhesDeFila(id) {
             itemSendoEditado = dadosCompletos.find(x => x.id === id); 
             editMode = false;
@@ -500,10 +503,10 @@
                     <div><label class="text-[9px] font-black text-purple-400 uppercase">Tempo Total</label><p class="font-black text-purple-400 text-sm italic">${tempoTotal}</p></div>
                 </div>
                 <div class="grid grid-cols-2 gap-4 uppercase border-b border-white/10 pb-4">
-                    <div><label class="text-[9px] font-black text-purple-400">LOCAL</label>${editMode ? `<input id="edit_local" class="edit-input" value="${item.Local || ''}">` : `<p class="font-bold text-slate-200 text-sm">${item.Local || '-'}</p>`}</div>
-                    <div><label class="text-[9px] font-black text-purple-400">RAT / OS</label>${editMode ? `<input id="edit_rat" class="edit-input" value="${item.RAT || ''}">` : `<p class="font-black text-purple-500 italic text-base font-mono">${item.RAT || '-'}</p>`}</div>
+                    <div><label class="text-[9px] font-black text-purple-400 uppercase tracking-widest">Local</label>${editMode ? `<input id="edit_local" class="edit-input" value="${item.Local || ''}">` : `<p class="font-bold text-slate-200 text-sm">${item.Local || '-'}</p>`}</div>
+                    <div><label class="text-[9px] font-black text-purple-400 uppercase tracking-widest">RAT / OS</label>${editMode ? `<input id="edit_rat" class="edit-input" value="${item.RAT || ''}">` : `<p class="font-black text-purple-500 italic text-base font-mono">${item.RAT || '-'}</p>`}</div>
                 </div>
-                <div><label class="text-[9px] font-black text-purple-400 uppercase">Descrição</label>${editMode ? `<textarea id="edit_desc" class="edit-input h-24">${item["DESCRIÇÃO"] || ''}</textarea>` : `<div class="bg-black/40 p-4 rounded-xl italic text-slate-400 text-xs border border-white/5 leading-relaxed">"${item["DESCRIÇÃO"] || '---'}"</div>`}</div>
+                <div><label class="text-[9px] font-black text-purple-400 uppercase tracking-widest">Descrição</label>${editMode ? `<textarea id="edit_desc" class="edit-input h-24">${item["DESCRIÇÃO"] || ''}</textarea>` : `<div class="bg-black/40 p-4 rounded-xl italic text-slate-400 text-xs border border-white/5 leading-relaxed">"${item["DESCRIÇÃO"] || '---'}"</div>`}</div>
                 <div class="grid grid-cols-4 gap-2 text-center text-[8px] font-black uppercase">
                     <div class="bg-white/5 p-2 rounded-xl">Base<br>${editMode ? `<input id="edit_val" class="edit-input !p-1 text-center" value="${fixVal(item.VALOR)}">` : `<span class="text-white text-xs">${exibirMoeda(item.VALOR)}</span>`}</div>
                     <div class="bg-white/5 p-2 rounded-xl">Extra<br>${editMode ? `<input id="edit_extra" class="edit-input !p-1 text-center" value="${fixVal(item.EXTRA)}">` : `<span class="text-white text-xs">${exibirMoeda(item.EXTRA)}</span>`}</div>
