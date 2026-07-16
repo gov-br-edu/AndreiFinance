@@ -37,7 +37,7 @@
             border-radius: 12px !important;
         }
 
-        /* Estilo Adicional para a Magic Box de Colar */
+        /* Magic Box de Colar */
         .magic-box {
             border: 2px dashed rgba(168, 85, 247, 0.4) !important;
             background: rgba(168, 85, 247, 0.05) !important;
@@ -65,6 +65,9 @@
         .circle-icon-btn:hover { background: rgba(255, 255, 255, 0.25); transform: scale(1.05); }
         .circle-icon-btn.btn-delete:hover { background: rgba(239, 68, 68, 0.4); border-color: #ef4444; }
         .edit-input { width: 100%; border: 1px solid #a855f7 !important; padding: 10px; font-size: 14px; }
+        
+        /* Estilos Empresa Cards */
+        .empresa-card img { width: 100%; height: 120px; object-contain: cover; border-radius: 12px; background: #000; margin-bottom: 12px; }
     </style>
 </head>
 <body>
@@ -74,8 +77,6 @@
             <path d="M-100,200 C300,100 500,600 900,100" fill="none" stroke="#a855f7" stroke-width="6" opacity="0.2" />
             <path d="M1100,800 C700,900 400,400 -100,800" fill="none" stroke="white" stroke-width="3" opacity="0.1" />
             <path d="M200,1100 C500,700 800,900 1100,600" fill="none" stroke="#6b21a8" stroke-width="8" opacity="0.2" />
-            <path d="M0,500 C300,800 700,200 1000,500" fill="none" stroke="#a855f7" stroke-width="2" opacity="0.1" />
-            <path d="M-100,100 C200,400 800,0 1100,300" fill="none" stroke="white" stroke-width="2" opacity="0.05" />
         </svg>
         <div class="logo-central"></div>
     </div>
@@ -86,6 +87,7 @@
             <div class="tabs-container">
                 <div id="tabIndicator" class="tab-indicator"></div>
                 <button onclick="showTab('lancamentos', this)" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-white">LANÇAMENTOS</button>
+                <button onclick="showTab('empresas', this)" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-slate-400">EMPRESAS</button>
                 <button onclick="showTab('fechamento', this)" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-slate-400">FECHAMENTO</button>
                 <button onclick="showTab('dashboard', this)" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-slate-400">DASHBOARD</button>
             </div>
@@ -93,11 +95,10 @@
     </nav>
 
     <main class="max-w-7xl mx-auto p-4 md:p-8">
+        <!-- LANÇAMENTOS -->
         <section id="tab-lancamentos" class="tab-content grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div class="lg:col-span-1">
                 <div class="glass p-6 rounded-3xl sticky top-28">
-                    
-                    <!-- NOVO: MAGIC BOX PARA AUTO-PREENCHIMENTO -->
                     <div class="mb-6">
                         <label class="text-[9px] font-bold text-purple-400 uppercase tracking-widest ml-1 mb-2 block text-center italic">✨ Auto-preenchimento Inteligente</label>
                         <textarea id="magicPaste" placeholder="Cole aqui o texto copiado do Gemini..." 
@@ -111,6 +112,19 @@
                         </div>
                         <input type="hidden" id="TIPO" value="Entrada">
                         <input type="date" id="DIA" class="w-full p-3 text-xs" required>
+                        
+                        <!-- NOVO: Campos de Horário -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-[8px] text-purple-400 font-bold ml-1 uppercase">Início</label>
+                                <input type="time" id="HORA_INICIO" class="w-full p-3 text-xs">
+                            </div>
+                            <div>
+                                <label class="text-[8px] text-purple-400 font-bold ml-1 uppercase">Fim</label>
+                                <input type="time" id="HORA_FIM" class="w-full p-3 text-xs">
+                            </div>
+                        </div>
+
                         <input type="text" id="EMPRESA" placeholder="EMPRESA" class="w-full p-3 text-xs uppercase">
                         <input type="text" id="INTERMEDIO" placeholder="INTERMÉDIO" class="w-full p-3 text-xs uppercase">
                         <input type="text" id="Local" placeholder="LOCAL" class="w-full p-3 text-xs uppercase">
@@ -146,6 +160,46 @@
                 </div>
             </div>
         </section>
+
+        <!-- ABA EMPRESAS -->
+        <section id="tab-empresas" class="tab-content hidden grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div class="lg:col-span-1">
+                <div class="glass p-6 rounded-3xl sticky top-28">
+                    <h2 class="text-xs font-black text-purple-400 mb-6 uppercase tracking-widest">Gerenciar Empresas</h2>
+                    <form id="formEmpresa" class="space-y-4">
+                        <input type="hidden" id="empresa_id">
+                        <input type="text" id="emp_foto" placeholder="URL da Foto/Logo" class="w-full p-3 text-xs">
+                        <input type="text" id="emp_nome" placeholder="NOME DA EMPRESA" class="w-full p-3 text-xs uppercase" required>
+                        <input type="text" id="emp_intermedio" placeholder="INTERMÉDIO" class="w-full p-3 text-xs uppercase">
+                        
+                        <div class="border-t border-white/10 pt-4">
+                            <label class="text-[9px] font-bold text-slate-400 uppercase block mb-2">Configuração de Valores</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="number" id="emp_base_v" placeholder="VALOR BASE" class="w-full p-3 text-xs">
+                                <input type="number" id="emp_base_h" placeholder="ATÉ X HORAS" class="w-full p-3 text-xs">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 mt-2">
+                                <input type="number" id="emp_hora_ext" placeholder="HORA EXTRA" class="w-full p-3 text-xs">
+                                <input type="number" id="emp_ativo_ext" placeholder="ATIVO EXTRA" class="w-full p-3 text-xs">
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <label class="text-[9px] font-bold text-slate-400 uppercase block mb-2">Tiers Opcionais (Prompt IT)</label>
+                            <textarea id="emp_tiers" placeholder='Ex: {"5": 130, "7": 150, "9": 200}' class="w-full p-3 text-[10px] h-20 font-mono"></textarea>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <button type="submit" class="flex-1 btn-glass-purple text-white py-3 rounded-2xl font-black uppercase text-[10px]">SALVAR</button>
+                            <button type="button" onclick="limparFormEmpresa()" class="p-3 bg-white/5 rounded-2xl text-[10px] font-black uppercase">✕</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="listaEmpresasCards">
+                <!-- Cards de Empresas entrarão aqui -->
+            </div>
+        </section>
         
         <section id="tab-fechamento" class="tab-content hidden space-y-12"></section>
 
@@ -173,7 +227,7 @@
         </section>
     </main>
 
-    <!-- MODAL -->
+    <!-- MODAL DETALHES -->
     <div id="modalDetalhes">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="glass modal-card rounded-3xl overflow-hidden border border-purple-500/30">
@@ -207,55 +261,114 @@
 
         let dadosCompletos = [], itemSendoEditado = null, editMode = false, tipoAtual = 'Entrada';
         let filtroFechamento = 'TODOS', chart1 = null, chart2 = null, chart3 = null, chart4 = null;
+        let empresasConfig = [];
         const mesesNomes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
-        // --- LÓGICA DO MAGIC PASTE (AUTO-PREENCHIMENTO) ---
+        // --- MÁGICA DE COLAR (Gemini Parsing) ---
         document.getElementById('magicPaste').addEventListener('input', function(e) {
             const fullText = e.target.value;
             if (!fullText) return;
-
             const lines = fullText.split('\n');
-            
             lines.forEach(line => {
                 const cleanLine = line.trim();
-                
-                // DATA: [DD/MM/AAAA]
                 if (cleanLine.toUpperCase().startsWith('DATA:')) {
                     const dateVal = cleanLine.split(':')[1].trim();
                     if (dateVal.includes('/')) {
                         const parts = dateVal.split('/');
-                        // Converte para AAAA-MM-DD para o input type="date"
                         document.getElementById('DIA').value = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-                    } else if (dateVal.includes('-')) {
-                        document.getElementById('DIA').value = dateVal;
                     }
                 }
-                
-                // EMPRESA: [NOME]
-                if (cleanLine.toUpperCase().startsWith('EMPRESA:')) {
-                    document.getElementById('EMPRESA').value = cleanLine.split(':')[1].trim().toUpperCase();
-                }
-
-                // LOCAL: [NOME]
-                if (cleanLine.toUpperCase().startsWith('LOCAL:')) {
-                    document.getElementById('Local').value = cleanLine.split(':')[1].trim().toUpperCase();
-                }
-
-                // RAT / OS: [NÚMERO]
-                if (cleanLine.toUpperCase().startsWith('RAT / OS:')) {
-                    document.getElementById('RAT').value = cleanLine.split(':')[1].trim();
-                }
-
-                // DESCRIÇÃO: [TEXTO]
-                if (cleanLine.toUpperCase().startsWith('DESCRIÇÃO:')) {
-                    document.getElementById('DESCRICAO').value = cleanLine.split(':')[1].trim();
-                }
+                if (cleanLine.toUpperCase().startsWith('EMPRESA:')) document.getElementById('EMPRESA').value = cleanLine.split(':')[1].trim().toUpperCase();
+                if (cleanLine.toUpperCase().startsWith('LOCAL:')) document.getElementById('Local').value = cleanLine.split(':')[1].trim().toUpperCase();
+                if (cleanLine.toUpperCase().startsWith('RAT / OS:')) document.getElementById('RAT').value = cleanLine.split(':')[1].trim();
+                if (cleanLine.toUpperCase().startsWith('DESCRIÇÃO:')) document.getElementById('DESCRICAO').value = cleanLine.split(':')[1].trim();
             });
-
-            // Limpa o campo de colar para o próximo uso
             setTimeout(() => { e.target.value = ''; }, 500);
         });
 
+        // --- GESTÃO DE EMPRESAS ---
+        async function carregarEmpresas() {
+            const { data, error } = await supabaseClient.from('empresas_config').select('*').order('nome', { ascending: true });
+            if(!error) {
+                empresasConfig = data;
+                renderizarEmpresas();
+            }
+        }
+
+        function renderizarEmpresas() {
+            const container = document.getElementById('listaEmpresasCards');
+            container.innerHTML = '';
+            empresasConfig.forEach(emp => {
+                const foto = emp.foto || 'https://via.placeholder.com/150/020617/a855f7?text=LOGO';
+                container.innerHTML += `
+                    <div class="glass p-5 rounded-3xl empresa-card border border-white/5 relative group">
+                        <div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="editarEmpresa(${emp.id})" class="p-2 bg-purple-500/20 text-purple-400 rounded-lg text-[10px]">EDITAR</button>
+                            <button onclick="deletarEmpresa(${emp.id})" class="p-2 bg-red-500/20 text-red-400 rounded-lg text-[10px]">✕</button>
+                        </div>
+                        <img src="${foto}" alt="${emp.nome}" class="object-contain p-2 bg-black/40">
+                        <h3 class="text-sm font-black text-white uppercase truncate">${emp.nome}</h3>
+                        <p class="text-[9px] text-purple-400 font-bold mb-4">INTERMÉDIO: ${emp.intermedio || '-'}</p>
+                        <div class="space-y-1 text-[10px] text-slate-400">
+                            <div class="flex justify-between"><span>Base:</span> <span class="text-white font-bold">${formatarParaDB(emp.base_v || 0)} (${emp.base_h}h)</span></div>
+                            <div class="flex justify-between"><span>Hora Extra:</span> <span class="text-white font-bold">${formatarParaDB(emp.hora_ext || 0)}/h</span></div>
+                            <div class="flex justify-between"><span>Ativo Extra:</span> <span class="text-white font-bold">${formatarParaDB(emp.ativo_ext || 0)}</span></div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function editarEmpresa(id) {
+            const emp = empresasConfig.find(e => e.id === id);
+            document.getElementById('empresa_id').value = emp.id;
+            document.getElementById('emp_nome').value = emp.nome;
+            document.getElementById('emp_intermedio').value = emp.intermedio;
+            document.getElementById('emp_foto').value = emp.foto;
+            document.getElementById('emp_base_v').value = emp.base_v;
+            document.getElementById('emp_base_h').value = emp.base_h;
+            document.getElementById('emp_hora_ext').value = emp.hora_ext;
+            document.getElementById('emp_ativo_ext').value = emp.ativo_ext;
+            document.getElementById('emp_tiers').value = emp.tiers ? JSON.stringify(emp.tiers) : '';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function deletarEmpresa(id) {
+            if(confirm("Deseja remover esta empresa?")) {
+                await supabaseClient.from('empresas_config').delete().eq('id', id);
+                carregarEmpresas();
+            }
+        }
+
+        function limparFormEmpresa() {
+            document.getElementById('formEmpresa').reset();
+            document.getElementById('empresa_id').value = '';
+        }
+
+        document.getElementById('formEmpresa').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('empresa_id').value;
+            const payload = {
+                nome: document.getElementById('emp_nome').value.toUpperCase(),
+                intermedio: document.getElementById('emp_intermedio').value.toUpperCase(),
+                foto: document.getElementById('emp_foto').value,
+                base_v: parseFloat(document.getElementById('emp_base_v').value),
+                base_h: parseInt(document.getElementById('emp_base_h').value),
+                hora_ext: parseFloat(document.getElementById('emp_hora_ext').value),
+                ativo_ext: parseFloat(document.getElementById('emp_ativo_ext').value),
+                tiers: document.getElementById('emp_tiers').value ? JSON.parse(document.getElementById('emp_tiers').value) : null
+            };
+
+            if(id) {
+                await supabaseClient.from('empresas_config').update(payload).eq('id', id);
+            } else {
+                await supabaseClient.from('empresas_config').insert([payload]);
+            }
+            limparFormEmpresa();
+            carregarEmpresas();
+        });
+
+        // --- LÓGICA CORE ---
         function fixVal(v) {
             if (!v) return 0;
             let str = v.toString().replace("R$", "").replace(/\s/g, "");
@@ -301,7 +414,7 @@
 
         function popularFiltroAno() {
             const selectAno = document.getElementById('filtroAnoDash');
-            if(selectAno.options.length > 0) return;
+            if(selectAno && selectAno.options.length > 0) return;
             const anosUnicos = new Set();
             dadosCompletos.forEach(d => {
                 if (!d.DIA) return;
@@ -312,9 +425,9 @@
             const anos = Array.from(anosUnicos).sort((a,b) => b-a);
             anos.forEach(ano => {
                 let opt = document.createElement('option'); opt.value = ano; opt.innerText = ano;
-                selectAno.appendChild(opt);
+                if(selectAno) selectAno.appendChild(opt);
             });
-            if(anos.length > 0) selectAno.value = anos[0];
+            if(selectAno && anos.length > 0) selectAno.value = anos[0];
         }
 
         function renderizarTabela(dados) {
@@ -388,10 +501,12 @@
             indicator.style.width = btn.offsetWidth + 'px'; indicator.style.left = btn.offsetLeft + 'px';
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.replace('text-white', 'text-slate-400'));
             btn.classList.replace('text-slate-400', 'text-white');
-            if(tabId === 'fechamento') carregarFechamentoFinal(); if(tabId === 'dashboard') renderCharts(); if(tabId === 'lancamentos') carregarLancamentos();
+            
+            if(tabId === 'fechamento') carregarFechamentoFinal(); 
+            if(tabId === 'dashboard') renderCharts(); 
+            if(tabId === 'lancamentos') carregarLancamentos();
+            if(tabId === 'empresas') carregarEmpresas();
         }
-
-        function filterFechamento(tipo) { filtroFechamento = tipo; carregarFechamentoFinal(); }
 
         async function carregarFechamentoFinal() {
             const container = document.getElementById('tab-fechamento'); container.innerHTML = '<div class="p-20 text-center animate-pulse uppercase font-black text-purple-500">Mapeando histórico...</div>';
@@ -412,11 +527,10 @@
                 } else { grupos[chaveSort].pagos.push(l); grupos[chaveSort].trec += v; }
             });
 
-            let headerHTML = `<div class="flex justify-between items-center border-b border-white/10 pb-6"><h2 class="text-2xl font-black text-purple-400 italic uppercase">Fechamento</h2></div>`;
-            container.innerHTML = headerHTML;
+            container.innerHTML = `<div class="flex justify-between items-center border-b border-white/10 pb-6"><h2 class="text-2xl font-black text-purple-400 italic uppercase">Fechamento</h2></div>`;
             Object.keys(grupos).sort((a,b) => b - a).forEach(mKey => {
                 const g = grupos[mKey];
-                container.innerHTML += `<div class="glass p-6 rounded-3xl mb-8">
+                container.innerHTML += `<div class="glass p-6 rounded-3xl mb-8 border-l-8 border-purple-600">
                     <h3 class="text-sm font-black text-slate-100 uppercase mb-4">${g.nome}</h3>
                     <div class="flex gap-8"><span class="text-emerald-400 font-bold">Recebido: ${formatarParaDB(g.trec)}</span><span class="text-purple-400 font-bold">Pendente: ${formatarParaDB(g.tp)}</span></div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
@@ -440,11 +554,21 @@
             const v = fixVal(document.getElementById('VALOR').value), ex = fixVal(document.getElementById('EXTRA').value), al = fixVal(document.getElementById('MATERIAL').value), tr = fixVal(document.getElementById('TRANSP').value);
             const totalNum = v+ex+al+tr;
             const payload = {
-                TIPO: tipoAtual, DIA: `${dpts[2]}/${dpts[1]}/${dpts[0]}`, EMPRESA: document.getElementById('EMPRESA').value.toUpperCase(), "INTERMÉDIO": document.getElementById('INTERMEDIO').value.toUpperCase(), Local: document.getElementById('Local').value.toUpperCase(), RAT: document.getElementById('RAT').value, "DESCRIÇÃO": document.getElementById('DESCRICAO').value,
+                TIPO: tipoAtual, DIA: `${dpts[2]}/${dpts[1]}/${dpts[0]}`, 
+                HORA_ENTRADA: document.getElementById('HORA_INICIO').value,
+                HORA_SAIDA: document.getElementById('HORA_FIM').value,
+                EMPRESA: document.getElementById('EMPRESA').value.toUpperCase(), 
+                "INTERMÉDIO": document.getElementById('INTERMEDIO').value.toUpperCase(), 
+                Local: document.getElementById('Local').value.toUpperCase(), 
+                RAT: document.getElementById('RAT').value, 
+                "DESCRIÇÃO": document.getElementById('DESCRICAO').value,
                 VALOR: formatarParaDB(v), EXTRA: formatarParaDB(ex), MATERIAL: formatarParaDB(al), TRANSP: formatarParaDB(tr), TOTAL: formatarParaDB(totalNum), PAGAMENTO: tipoAtual === 'Saída' ? 'SAÍDA' : 'NÃO PAGO', "Mês": parseInt(dpts[1]), "ANO": parseInt(dpts[0])
             };
             const { error } = await supabaseClient.from('atendimentos').insert([payload]);
-            if(!error) location.reload(); else alert("Erro!");
+            if(!error) { 
+                await carregarLancamentos(); 
+                document.getElementById('formAtendimento').reset();
+            } else alert("Erro!");
         });
 
         async function renderCharts() {
@@ -456,63 +580,68 @@
             let labels = [], ganhos = [], gastos = [], eMap = {};
             let compBase = 0, compExtra = 0, compMaterial = 0, compTransp = 0;
             let statusPago = 0, statusPendente = 0;
+            
+            const filtrados = data.filter(d => {
+                if(!d.DIA) return false;
+                let pts = d.DIA.split('/');
+                let dAno = pts[2], dMes = parseInt(pts[1]);
+                return dAno == anoSel && (mesSel === 'TODOS' || dMes == mesSel);
+            });
+
             if (mesSel === 'TODOS') {
                 labels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
                 ganhos = new Array(12).fill(0); gastos = new Array(12).fill(0);
-                data.forEach(d => {
-                    if (!d.DIA) return;
+                filtrados.forEach(d => {
                     let pts = d.DIA.split('/');
-                    let dAno = pts[2], dMes = parseInt(pts[1]);
-                    if(dAno == anoSel) {
-                        const mIdx = dMes - 1;
-                        const vTotal = fixVal(d.TOTAL);
-                        if(d.TIPO === 'Entrada') { 
-                            ganhos[mIdx] += vTotal; 
-                            eMap[d.EMPRESA] = (eMap[d.EMPRESA] || 0) + vTotal;
-                            compBase += fixVal(d.VALOR); compExtra += fixVal(d.EXTRA); compMaterial += fixVal(d.MATERIAL); compTransp += fixVal(d.TRANSP);
-                            if(d.PAGAMENTO === 'PAGO') statusPago += vTotal; else statusPendente += vTotal;
-                        } else { gastos[mIdx] += vTotal; }
-                    }
+                    let dMes = parseInt(pts[1]);
+                    const mIdx = dMes - 1;
+                    const vTotal = fixVal(d.TOTAL);
+                    if(d.TIPO === 'Entrada') { 
+                        ganhos[mIdx] += vTotal; 
+                        eMap[d.EMPRESA] = (eMap[d.EMPRESA] || 0) + vTotal;
+                        compBase += fixVal(d.VALOR); compExtra += fixVal(d.EXTRA); compMaterial += fixVal(d.MATERIAL); compTransp += fixVal(d.TRANSP);
+                        if(d.PAGAMENTO === 'PAGO') statusPago += vTotal; else statusPendente += vTotal;
+                    } else { gastos[mIdx] += vTotal; }
                 });
             } else {
                 const diasNoMes = new Date(anoSel, mesSel, 0).getDate();
                 labels = Array.from({length: diasNoMes}, (_, i) => i + 1);
                 ganhos = new Array(diasNoMes).fill(0); gastos = new Array(diasNoMes).fill(0);
-                data.forEach(d => {
-                    if (!d.DIA) return;
+                filtrados.forEach(d => {
                     let pts = d.DIA.split('/');
-                    let dAno = pts[2], dMes = parseInt(pts[1]), dDia = parseInt(pts[0]);
-                    if(dAno == anoSel && dMes == mesSel) {
-                        const dIdx = dDia - 1;
-                        const vTotal = fixVal(d.TOTAL);
-                        if(d.TIPO === 'Entrada') { 
-                            ganhos[dIdx] += vTotal; 
-                            eMap[d.EMPRESA] = (eMap[d.EMPRESA] || 0) + vTotal;
-                            compBase += fixVal(d.VALOR); compExtra += fixVal(d.EXTRA); compMaterial += fixVal(d.MATERIAL); compTransp += fixVal(d.TRANSP);
-                            if(d.PAGAMENTO === 'PAGO') statusPago += vTotal; else statusPendente += vTotal;
-                        } else { gastos[dIdx] += vTotal; }
-                    }
+                    let dDia = parseInt(pts[0]);
+                    const dIdx = dDia - 1;
+                    const vTotal = fixVal(d.TOTAL);
+                    if(d.TIPO === 'Entrada') { 
+                        ganhos[dIdx] += vTotal; 
+                        eMap[d.EMPRESA] = (eMap[d.EMPRESA] || 0) + vTotal;
+                        compBase += fixVal(d.VALOR); compExtra += fixVal(d.EXTRA); compMaterial += fixVal(d.MATERIAL); compTransp += fixVal(d.TRANSP);
+                        if(d.PAGAMENTO === 'PAGO') statusPago += vTotal; else statusPendente += vTotal;
+                    } else { gastos[dIdx] += vTotal; }
                 });
             }
             chart1 = new Chart(document.getElementById('chartFluxo').getContext('2d'), {
-                type: 'bar', data: { labels: labels, datasets: [{ label: 'Ganhos', data: ganhos, backgroundColor: '#10b981', borderRadius: 6 }, { label: 'Gastos', data: gastos, backgroundColor: '#ef4444', borderRadius: 6 }]},
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#f1f5f9' } } } }
+                type: 'bar', data: { labels: labels, datasets: [{ label: 'Ganhos', data: ganhos, backgroundColor: '#10b981' }, { label: 'Gastos', data: gastos, backgroundColor: '#ef4444' }]},
+                options: { responsive: true, maintainAspectRatio: false }
             });
-            const topEmp = Object.entries(eMap).sort((a,b) => b[1]-a[1]).slice(0, 7);
             chart2 = new Chart(document.getElementById('chartEmpresas').getContext('2d'), {
-                type: 'doughnut', data: { labels: topEmp.map(x => x[0]), datasets: [{ data: topEmp.map(x => x[1]), backgroundColor: ['#a855f7', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#ec4899', '#06b6d4'], borderWidth: 0 }]},
-                options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'TOP EMPRESAS (R$)', color: '#a855f7' }, legend: { position: 'bottom', labels: { color: '#f1f5f9', font: { size: 9 } } } } }
+                type: 'doughnut', data: { labels: Object.keys(eMap), datasets: [{ data: Object.values(eMap), backgroundColor: ['#a855f7', '#10b981', '#f59e0b', '#ef4444', '#3b82f6'] }]},
+                options: { responsive: true, maintainAspectRatio: false }
             });
             chart3 = new Chart(document.getElementById('chartComposicao').getContext('2d'), {
-                type: 'polarArea', data: { labels: ['Base', 'Extra', 'Material', 'Transp'], datasets: [{ data: [compBase, compExtra, compMaterial, compTransp], backgroundColor: ['rgba(168, 85, 247, 0.7)', 'rgba(16, 185, 129, 0.7)', 'rgba(245, 158, 11, 0.7)', 'rgba(59, 130, 246, 0.7)'], borderWidth: 0 }]},
-                options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'COMPOSIÇÃO DO FATURAMENTO', color: '#a855f7' }, legend: { position: 'bottom', labels: { color: '#f1f5f9', font: { size: 10 } } } }, scales: { r: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false } } } }
+                type: 'polarArea', data: { labels: ['Base', 'Extra', 'Material', 'Transp'], datasets: [{ data: [compBase, compExtra, compMaterial, compTransp], backgroundColor: ['#a855f7', '#10b981', '#f59e0b', '#3b82f6'] }]},
+                options: { responsive: true, maintainAspectRatio: false }
             });
             chart4 = new Chart(document.getElementById('chartStatusPagamento').getContext('2d'), {
-                type: 'pie', data: { labels: ['Recebido (Pago)', 'Pendente'], datasets: [{ data: [statusPago, statusPendente], backgroundColor: ['#10b981', '#f59e0b'], borderWidth: 0 }]},
-                options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'SAÚDE DOS RECEBÍVEIS', color: '#a855f7' }, legend: { position: 'bottom', labels: { color: '#f1f5f9', font: { size: 10 } } } } }
+                type: 'pie', data: { labels: ['Pago', 'Pendente'], datasets: [{ data: [statusPago, statusPendente], backgroundColor: ['#10b981', '#f59e0b'] }]},
+                options: { responsive: true, maintainAspectRatio: false }
             });
         }
-        window.onload = () => carregarLancamentos();
+        
+        window.onload = () => {
+            carregarLancamentos();
+            carregarEmpresas();
+        };
     </script>
 </body>
 </html>
