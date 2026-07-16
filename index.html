@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Finance Pro - Ultra Aurora Glass</title>
     
     <!-- MINIATURA DO SITE (FAVICON) -->
@@ -18,7 +18,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
 
-        body { background: #020617; font-family: 'Plus Jakarta Sans', sans-serif; color: #f1f5f9; min-height: 100vh; position: relative; overflow-x: hidden; }
+        body { background: #020617; font-family: 'Plus Jakarta Sans', sans-serif; color: #f1f5f9; min-height: 100vh; position: relative; overflow-x: hidden; width: 100%; }
 
         .bg-pattern { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; pointer-events: none; }
         .logo-central { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -45%); width: 320px; height: 320px; background: url("1781706422626.png") no-repeat center; background-size: contain; filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.6)); }
@@ -26,9 +26,11 @@
         .glass { background: rgba(15, 23, 42, 0.45) !important; backdrop-filter: blur(30px) saturate(180%); border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); }
         .btn-glass-purple { background: linear-gradient(135deg, rgba(168, 85, 247, 0.8), rgba(107, 33, 168, 0.8)); transition: 0.3s; }
 
-        .tabs-container { position: relative; display: flex; background: rgba(0,0,0,0.4); padding: 4px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
+        /* Tabs Responsivas */
+        .tabs-container { position: relative; display: flex; background: rgba(0,0,0,0.4); padding: 4px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; }
+        .tabs-container::-webkit-scrollbar { display: none; }
         .tab-indicator { position: absolute; height: calc(100% - 8px); top: 4px; left: 4px; border-radius: 12px; background: linear-gradient(135deg, #a855f7, #6b21a8); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1; }
-        .tab-btn { position: relative; z-index: 2; transition: color 0.3s; }
+        .tab-btn { position: relative; z-index: 2; transition: color 0.3s; white-space: nowrap; }
 
         input, textarea, select { 
             background: rgba(15, 23, 42, 0.8) !important; 
@@ -37,7 +39,7 @@
             border-radius: 12px !important;
         }
 
-        /* Animação da Magic Box */
+        /* Animação da Magic Box (Linha de Luz) */
         .magic-box-wrapper {
             position: relative;
             padding: 2px;
@@ -47,7 +49,6 @@
             justify-content: center;
             align-items: center;
         }
-
         .magic-box-wrapper::before {
             content: '';
             position: absolute;
@@ -57,12 +58,10 @@
             animation: rotate-border 4s linear infinite;
             z-index: 0;
         }
-
         @keyframes rotate-border {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
-
         .magic-box { 
             position: relative;
             z-index: 1;
@@ -71,19 +70,14 @@
             background: #0f172a !important; 
             transition: 0.3s; 
         }
-        
-        .magic-box:focus {
-            background: rgba(168, 85, 247, 0.1) !important;
-            box-shadow: inset 0 0 10px rgba(168, 85, 247, 0.2);
-        }
 
         .status-pago { border-left: 6px solid #10b981; }
         .status-naopago-tab { border-left: 6px solid #f97316; }
         .status-saida { border-left: 6px solid #ef4444; }
         .card-pendente-moldura { border: 2.5px solid #ef4444 !important; }
 
-        .table-container { max-height: 60vh; overflow-y: auto; }
-        ::-webkit-scrollbar { width: 5px; }
+        .table-container { max-height: 60vh; overflow-y: auto; overflow-x: auto; width: 100%; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-thumb { background: #a855f7; border-radius: 10px; }
 
         #modalDetalhes { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); }
@@ -107,15 +101,16 @@
         <div class="logo-central"></div>
     </div>
 
-    <nav class="glass sticky top-0 z-50 px-4 h-20 border-b border-white/5 flex items-center">
-        <div class="max-w-7xl mx-auto w-full flex justify-between items-center">
-            <img src="1781706422626.png" class="h-14 w-14 rounded-xl object-cover">
-            <div class="tabs-container">
+    <!-- Navegação Responsiva -->
+    <nav class="glass sticky top-0 z-50 px-2 md:px-4 h-20 border-b border-white/5 flex items-center">
+        <div class="max-w-7xl mx-auto w-full flex justify-between items-center gap-2">
+            <img src="1781706422626.png" class="h-10 w-10 md:h-14 md:w-14 rounded-xl object-cover flex-shrink-0">
+            <div class="tabs-container flex-grow max-w-full">
                 <div id="tabIndicator" class="tab-indicator"></div>
-                <button onclick="showTab('lancamentos', this)" id="btnTabLancamentos" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-white">LANÇAMENTOS</button>
-                <button onclick="showTab('empresas', this)" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-slate-400">EMPRESAS</button>
-                <button onclick="showTab('fechamento', this)" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-slate-400">FECHAMENTO</button>
-                <button onclick="showTab('dashboard', this)" class="tab-btn px-4 md:px-6 py-2 rounded-xl text-[10px] font-bold text-slate-400">DASHBOARD</button>
+                <button onclick="showTab('lancamentos', this)" id="btnTabLancamentos" class="tab-btn px-3 md:px-6 py-2 rounded-xl text-[9px] md:text-[10px] font-bold text-white">LANÇAMENTOS</button>
+                <button onclick="showTab('empresas', this)" class="tab-btn px-3 md:px-6 py-2 rounded-xl text-[9px] md:text-[10px] font-bold text-slate-400">EMPRESAS</button>
+                <button onclick="showTab('fechamento', this)" class="tab-btn px-3 md:px-6 py-2 rounded-xl text-[9px] md:text-[10px] font-bold text-slate-400">FECHAMENTO</button>
+                <button onclick="showTab('dashboard', this)" class="tab-btn px-3 md:px-6 py-2 rounded-xl text-[9px] md:text-[10px] font-bold text-slate-400">DASHBOARD</button>
             </div>
         </div>
     </nav>
@@ -124,12 +119,11 @@
         <!-- ABA LANÇAMENTOS -->
         <section id="tab-lancamentos" class="tab-content grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div class="lg:col-span-1">
-                <div class="glass p-6 rounded-3xl sticky top-28">
-                    <!-- MAGIC BOX COM ANIMAÇÃO -->
+                <div class="glass p-6 rounded-3xl lg:sticky lg:top-28">
                     <div class="mb-6">
                         <label class="text-[9px] font-bold text-purple-400 uppercase tracking-widest ml-1 mb-2 block text-center italic">✨ Auto-preenchimento Inteligente</label>
                         <div class="magic-box-wrapper">
-                            <textarea id="magicPaste" placeholder="Cole aqui o texto copiado do Gemini..." 
+                            <textarea id="magicPaste" placeholder="Cole aqui o texto..." 
                             class="w-full p-3 text-[10px] h-20 magic-box rounded-xl resize-none placeholder:text-slate-600 outline-none"></textarea>
                         </div>
                     </div>
@@ -141,18 +135,15 @@
                         </div>
                         <input type="hidden" id="TIPO" value="Entrada">
                         <input type="date" id="DIA" class="w-full p-3 text-xs" required>
-                        
                         <div class="grid grid-cols-2 gap-2">
                             <div><label class="text-[8px] text-purple-400 font-bold ml-1 uppercase">Início</label><input type="time" id="HORA_INICIO" oninput="calcularAutomacaoValores()" class="w-full p-3 text-xs"></div>
                             <div><label class="text-[8px] text-purple-400 font-bold ml-1 uppercase">Fim</label><input type="time" id="HORA_FIM" oninput="calcularAutomacaoValores()" class="w-full p-3 text-xs"></div>
                         </div>
-
                         <input type="text" id="EMPRESA" placeholder="EMPRESA" oninput="calcularAutomacaoValores()" class="w-full p-3 text-xs uppercase">
                         <input type="text" id="INTERMEDIO" placeholder="INTERMÉDIO" class="w-full p-3 text-xs uppercase">
                         <input type="text" id="Local" placeholder="LOCAL" class="w-full p-3 text-xs uppercase">
                         <input type="text" id="RAT" placeholder="RAT / OS" oninput="calcularAutomacaoValores()" class="w-full p-3 text-xs">
                         <textarea id="DESCRICAO" placeholder="Descrição..." class="w-full p-3 text-xs h-20"></textarea>
-                        
                         <div class="grid grid-cols-2 gap-3">
                             <div class="relative"><span class="absolute top-1 left-2 text-[7px] text-purple-400 font-black uppercase">Valor Base</span><input type="text" id="VALOR" placeholder="0,00" class="w-full p-3 pt-5 text-xs font-bold text-emerald-400"></div>
                             <div class="relative"><span class="absolute top-1 left-2 text-[7px] text-purple-400 font-black uppercase">Extra</span><input type="text" id="EXTRA" placeholder="0,00" class="w-full p-3 pt-5 text-xs font-bold text-orange-400"></div>
@@ -165,13 +156,13 @@
             </div>
 
             <div class="lg:col-span-3 flex flex-col gap-4">
-                <div class="glass p-2 rounded-2xl flex items-center px-6">
-                    <svg class="w-5 h-5 text-slate-500 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    <input type="text" id="inputBusca" onkeyup="filtrarLancamentos()" placeholder="Pesquisar por empresa, intermédio, data, valor ou RAT..." class="w-full bg-transparent border-none outline-none text-base p-4 placeholder:text-slate-500">
+                <div class="glass p-2 rounded-2xl flex items-center px-4 md:px-6">
+                    <svg class="w-5 h-5 text-slate-500 mr-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input type="text" id="inputBusca" onkeyup="filtrarLancamentos()" placeholder="Pesquisar..." class="w-full bg-transparent border-none outline-none text-sm md:text-base p-4 placeholder:text-slate-500">
                 </div>
                 <div class="glass rounded-3xl overflow-hidden">
                     <div class="table-container">
-                        <table class="w-full text-left text-xs relative">
+                        <table class="w-full text-left text-[10px] md:text-xs relative min-w-[500px]">
                             <thead class="bg-black/40 text-purple-300 font-bold uppercase sticky top-0 z-10 backdrop-blur-md">
                                 <tr><th class="p-5">Data / Hora</th><th class="p-5">Empresa / RAT</th><th class="p-5">Intermédio</th><th class="p-5 text-right">Total</th></tr>
                             </thead>
@@ -185,22 +176,16 @@
         <!-- ABA EMPRESAS -->
         <section id="tab-empresas" class="tab-content hidden grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div class="lg:col-span-1">
-                <div class="glass p-6 rounded-3xl sticky top-28">
+                <div class="glass p-6 rounded-3xl lg:sticky lg:top-28">
                     <h2 class="text-xs font-black text-purple-400 mb-6 uppercase tracking-widest text-center italic">Configurar Empresa</h2>
                     <form id="formEmpresa" class="space-y-4">
                         <input type="hidden" id="empresa_id">
                         <input type="text" id="emp_foto" placeholder="ex: prompt.png" class="w-full p-3 text-xs">
                         <input type="text" id="emp_nome" placeholder="NOME DA EMPRESA" class="w-full p-3 text-xs uppercase" required>
                         <input type="text" id="emp_intermedio" placeholder="INTERMÉDIO" class="w-full p-3 text-xs uppercase">
-                        <div class="grid grid-cols-2 gap-2">
-                            <input type="number" step="0.01" id="emp_base_v" placeholder="VALOR BASE" class="w-full p-3 text-xs">
-                            <input type="number" id="emp_base_h" placeholder="HORAS BASE" class="w-full p-3 text-xs">
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <input type="number" step="0.01" id="emp_hora_ext" placeholder="V. HORA EXTRA" class="w-full p-3 text-xs">
-                            <input type="number" step="0.01" id="emp_ativo_ext" placeholder="V. ATIVO EXTRA" class="w-full p-3 text-xs">
-                        </div>
-                        <textarea id="emp_tiers" placeholder='Tiers JSON ex: {"3":110, "5":130}' class="w-full p-3 text-[9px] h-20 font-mono"></textarea>
+                        <div class="grid grid-cols-2 gap-2"><input type="number" step="0.01" id="emp_base_v" placeholder="VALOR BASE" class="w-full p-3 text-xs"><input type="number" id="emp_base_h" placeholder="HORAS BASE" class="w-full p-3 text-xs"></div>
+                        <div class="grid grid-cols-2 gap-2"><input type="number" step="0.01" id="emp_hora_ext" placeholder="V. HORA EXTRA" class="w-full p-3 text-xs"><input type="number" step="0.01" id="emp_ativo_ext" placeholder="V. ATIVO EXTRA" class="w-full p-3 text-xs"></div>
+                        <textarea id="emp_tiers" placeholder='Tiers JSON' class="w-full p-3 text-[9px] h-20 font-mono"></textarea>
                         <button type="submit" class="w-full btn-glass-purple text-white py-3 rounded-2xl font-black uppercase text-[10px]">SALVAR EMPRESA</button>
                     </form>
                 </div>
@@ -213,9 +198,9 @@
         <section id="tab-dashboard" class="tab-content hidden flex flex-col gap-8">
             <div class="glass p-6 rounded-3xl flex flex-wrap items-center gap-6">
                 <h2 class="text-xl font-black text-purple-400 italic uppercase">Filtros Analíticos</h2>
-                <div class="flex gap-4">
-                    <select id="filtroAnoDash" onchange="renderCharts()" class="p-3 text-xs font-bold uppercase min-w-[120px]"></select>
-                    <select id="filtroMesDash" onchange="renderCharts()" class="p-3 text-xs font-bold uppercase min-w-[150px]">
+                <div class="flex gap-2 md:gap-4">
+                    <select id="filtroAnoDash" onchange="renderCharts()" class="p-3 text-[10px] font-bold uppercase min-w-[80px] md:min-w-[120px]"></select>
+                    <select id="filtroMesDash" onchange="renderCharts()" class="p-3 text-[10px] font-bold uppercase min-w-[120px] md:min-w-[150px]">
                         <option value="TODOS">Todos os Meses</option>
                         <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
                         <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
@@ -225,21 +210,22 @@
                 </div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="glass p-8 rounded-3xl min-h-[350px]"><canvas id="chartFluxo"></canvas></div>
-                <div class="glass p-8 rounded-3xl min-h-[350px]"><canvas id="chartEmpresas"></canvas></div>
-                <div class="glass p-8 rounded-3xl min-h-[350px]"><canvas id="chartComposicao"></canvas></div>
-                <div class="glass p-8 rounded-3xl min-h-[350px]"><canvas id="chartStatusPagamento"></canvas></div>
+                <div class="glass p-4 md:p-8 rounded-3xl min-h-[300px] md:min-h-[350px]"><canvas id="chartFluxo"></canvas></div>
+                <div class="glass p-4 md:p-8 rounded-3xl min-h-[300px] md:min-h-[350px]"><canvas id="chartEmpresas"></canvas></div>
+                <div class="glass p-4 md:p-8 rounded-3xl min-h-[300px] md:min-h-[350px]"><canvas id="chartComposicao"></canvas></div>
+                <div class="glass p-4 md:p-8 rounded-3xl min-h-[300px] md:min-h-[350px]"><canvas id="chartStatusPagamento"></canvas></div>
             </div>
         </section>
     </main>
 
+    <!-- MODAL DETALHES -->
     <div id="modalDetalhes">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="glass modal-card rounded-3xl overflow-hidden border border-purple-500/30">
                 <div id="modalHeader" class="p-6 flex justify-between items-center text-white border-b border-white/10 sticky top-0 z-20 backdrop-blur-xl">
                     <span id="modalStatusText" class="font-black uppercase text-[10px] opacity-60 tracking-widest">DETALHES</span>
                     <div class="flex items-center gap-3">
-                        <button onclick="deletarLancamento()" class="circle-icon-btn btn-delete" title="Excluir Lançamento"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2"/></svg></button>
+                        <button onclick="deletarLancamento()" class="circle-icon-btn btn-delete"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2"/></svg></button>
                         <button onclick="toggleEditMode()" class="circle-icon-btn"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-width="2.5"/></svg></button>
                         <button onclick="fecharModal()" class="text-4xl leading-none font-light ml-2">&times;</button>
                     </div>
@@ -247,7 +233,7 @@
                 <div id="modalBody" class="modal-body-scroll space-y-6"></div>
                 <div id="modalFooter" class="p-6 hidden flex justify-end gap-3 border-t border-white/10 bg-black/60 backdrop-blur-md">
                     <button onclick="toggleEditMode()" class="px-5 py-2 text-xs font-bold text-slate-400">Cancelar</button>
-                    <button onclick="salvarAlteracoes()" class="px-8 py-2 bg-emerald-600 rounded-xl text-xs font-black uppercase text-white shadow-lg">Confirmar Alterações</button>
+                    <button onclick="salvarAlteracoes()" class="px-8 py-2 bg-emerald-600 rounded-xl text-xs font-black uppercase text-white">Confirmar Alterações</button>
                 </div>
             </div>
         </div>
@@ -262,6 +248,7 @@
         let empresasConfig = [], filtroFechamento = 'TODOS', chart1 = null, chart2 = null, chart3 = null, chart4 = null;
         const mesesNomes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
+        // --- CORE FUNCTIONS ---
         function fixVal(v) {
             if (!v) return 0;
             let str = v.toString().replace("R$", "").replace(/\s/g, "");
@@ -269,11 +256,11 @@
             else { str = str.replace(",", "."); }
             return parseFloat(str) || 0;
         }
-
         function formatarParaDB(num) { return "R$ " + (num || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
         function exibirMoeda(v) { if (!v) return "R$ 0,00"; let limpo = v.toString().replace("R$", "").trim(); return "R$ " + limpo; }
         function normalizar(t) { return t ? t.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : ""; }
 
+        // --- CÁLCULOS & MAGIC PASTE ---
         document.getElementById('magicPaste').addEventListener('input', function(e) {
             const lines = e.target.value.split('\n');
             lines.forEach(line => {
@@ -298,7 +285,6 @@
             const rat = document.getElementById('RAT').value;
             const config = empresasConfig.find(e => e.nome === empNome);
             if (!config) return;
-
             if (!document.getElementById('INTERMEDIO').value) document.getElementById('INTERMEDIO').value = config.intermedio || '';
 
             let vBase = config.base_v || 0, vExtra = 0;
@@ -327,6 +313,7 @@
             document.getElementById('EXTRA').value = vExtra.toFixed(2).replace('.',',');
         }
 
+        // --- GESTÃO DE EMPRESAS ---
         async function carregarEmpresas() {
             const { data } = await supabaseClient.from('empresas_config').select('*').order('nome');
             empresasConfig = data || [];
@@ -339,7 +326,6 @@
                     <div class="grid grid-cols-2 gap-2 text-[8px] text-slate-400 font-bold uppercase">
                         <div class="bg-black/20 p-2 rounded-lg text-center">Base (${emp.base_h}h):<br><span class="text-white">${formatarParaDB(emp.base_v)}</span></div>
                         <div class="bg-black/20 p-2 rounded-lg text-center">Hora Ext:<br><span class="text-white">${formatarParaDB(emp.hora_ext)}</span></div>
-                        <div class="bg-black/20 p-2 rounded-lg col-span-2 text-center">Ativo Extra: <span class="text-white">${formatarParaDB(emp.ativo_ext)}</span></div>
                     </div>
                 </div>`).join('');
         }
@@ -360,7 +346,6 @@
             if(id) await supabaseClient.from('empresas_config').update(payload).eq('id', id);
             else await supabaseClient.from('empresas_config').insert([payload]);
             document.getElementById('formEmpresa').reset();
-            alert("Empresa salva com sucesso!");
             carregarEmpresas();
         });
 
@@ -375,9 +360,9 @@
             document.getElementById('emp_hora_ext').value = emp.hora_ext;
             document.getElementById('emp_ativo_ext').value = emp.ativo_ext;
             document.getElementById('emp_tiers').value = emp.tiers ? JSON.stringify(emp.tiers) : '';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        // --- NAVEGAÇÃO & LANÇAMENTOS ---
         function setTipo(t) {
             tipoAtual = t;
             document.getElementById('TIPO').value = t;
@@ -390,7 +375,8 @@
             document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
             document.getElementById('tab-' + id).classList.remove('hidden');
             const ind = document.getElementById('tabIndicator');
-            ind.style.width = btn.offsetWidth + 'px'; ind.style.left = btn.offsetLeft + 'px';
+            ind.style.width = btn.offsetWidth + 'px'; 
+            ind.style.left = btn.offsetLeft + 'px';
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.replace('text-white', 'text-slate-400'));
             btn.classList.replace('text-slate-400', 'text-white');
             if(id === 'dashboard') renderCharts();
@@ -421,19 +407,21 @@
 
         function filtrarLancamentos() {
             const t = normalizar(document.getElementById('inputBusca').value);
-            const fil = dadosCompletos.filter(d => normalizar(d.DIA).includes(t) || normalizar(d.EMPRESA).includes(t) || normalizar(d.RAT).includes(t) || normalizar(d["INTERMÉDIO"] || d.INTERMEDIO).includes(t) || d.TOTAL.toString().includes(t));
+            const fil = dadosCompletos.filter(d => normalizar(d.DIA).includes(t) || normalizar(d.EMPRESA).includes(t) || normalizar(d.RAT).includes(t) || normalizar(d["INTERMÉDIO"] || d.INTERMEDIO).includes(t));
             renderizarTabela(fil);
         }
 
+        // --- FECHAMENTO INTEGRAL (INDEX 1) ---
         async function carregarFechamentoFinal() {
             const container = document.getElementById('tab-fechamento'); 
             container.innerHTML = '<div class="p-20 text-center animate-pulse uppercase font-black text-purple-500 italic text-xs">Mapeando histórico...</div>';
             const { data: lancamentos } = await supabaseClient.from('atendimentos').select('*').eq('TIPO', 'Entrada').order('id', { ascending: false });
             const grupos = {};
+
             lancamentos.forEach(l => {
                 if(!l.DIA) return;
                 let pts = l.DIA.includes('-') ? l.DIA.split('-') : l.DIA.split('/');
-                let dia = l.DIA.includes('-') ? pts[2] : pts[0], mes = pts[1], ano = l.DIA.includes('-') ? pts[0] : pts[2];
+                let mes = pts[1], ano = l.DIA.includes('-') ? pts[0] : pts[2];
                 const chaveSort = `${ano}${mes.toString().padStart(2, '0')}`; 
                 const chaveNome = `${ano} - ${mesesNomes[parseInt(mes)-1]}`;
                 if(!grupos[chaveSort]) grupos[chaveSort] = { nome: chaveNome, p: {}, pagos: [], tp: 0, trec: 0 };
@@ -454,11 +442,12 @@
 
         async function marcarComoPago(ids) { if(confirm("Confirmar recebimento?")) { await supabaseClient.from('atendimentos').update({ PAGAMENTO: 'PAGO' }).in('id', ids); carregarFechamentoFinal(); } }
 
+        // --- DASHBOARD INTEGRAL (INDEX 1) ---
         function popularFiltroAno() {
             const selectAno = document.getElementById('filtroAnoDash');
             if(selectAno.options.length > 0) return;
             const anosUnicos = new Set();
-            dadosCompletos.forEach(d => { if(d.DIA) { let pts = d.DIA.includes('-') ? d.DIA.split('-') : d.DIA.split('/'); let a = d.DIA.includes('-') ? pts[0] : pts[2]; if(a) anosUnicos.add(a); } });
+            dadosCompletos.forEach(d => { if(d.DIA) { let pts = d.DIA.includes('/') ? d.DIA.split('/') : d.DIA.split('-'); let a = d.DIA.includes('/') ? pts[2] : pts[0]; if(a) anosUnicos.add(a); } });
             Array.from(anosUnicos).sort().reverse().forEach(ano => { let opt = document.createElement('option'); opt.value = ano; opt.innerText = ano; selectAno.appendChild(opt); });
             if(anosUnicos.size > 0) selectAno.value = Array.from(anosUnicos).sort().reverse()[0];
         }
